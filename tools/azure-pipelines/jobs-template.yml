@@ -136,7 +136,7 @@ jobs:
       echo "##vso[task.setvariable variable=JAVA_HOME]$JAVA_HOME_11_X64"
       echo "##vso[task.setvariable variable=PATH]$JAVA_HOME_11_X64/bin:$PATH"
     displayName: "Set to jdk11"
-    condition: eq('${{parameters.jdk}}', 'jdk11')  
+    condition: eq('${{parameters.jdk}}', 'jdk11')
 
   - script: sudo sysctl -w kernel.core_pattern=core.%p
     displayName: Set coredump pattern
@@ -206,6 +206,14 @@ jobs:
       displayName: Cache E2E files
       continueOnError: true
       condition: not(eq(variables['SKIP'], '1'))
+    - task: Cache@2
+      inputs:
+        key: e2e-artifact-cache | flink-end-to-end-tests/**/*.sh
+        restoreKeys: e2e-artifact-cache
+        path: $(E2E_TARBALL_CACHE)
+      displayName: Cache E2E artifacts
+      continueOnError: true
+      condition: not(eq(variables['SKIP'], '1'))
     - script: |
         echo "##vso[task.setvariable variable=JAVA_HOME]$JAVA_HOME_11_X64"
         echo "##vso[task.setvariable variable=PATH]$JAVA_HOME_11_X64/bin:$PATH"
@@ -233,6 +241,7 @@ jobs:
         IT_CASE_S3_BUCKET: $(SECRET_S3_BUCKET)
         IT_CASE_S3_ACCESS_KEY: $(SECRET_S3_ACCESS_KEY)
         IT_CASE_S3_SECRET_KEY: $(SECRET_S3_SECRET_KEY)
+        E2E_TARBALL_CACHE: $(E2E_TARBALL_CACHE)
       condition: and(succeeded(),not(eq(variables['SKIP'], '1')))
       # upload debug artifacts
     - task: PublishPipelineArtifact@1
