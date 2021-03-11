@@ -33,13 +33,22 @@ mkdir -p $E2E_TARBALL_CACHE
 # echo $result
 
 function get_artifact {
-    ARTIFACT_URL=$1
+    local __result=$1
+    local ARTIFACT_URL=$2
     BASENAME="`basename $ARTIFACT_URL`"
+    echo "RUN ARTIFACT GET"
+    echo $ARTIFACT_URL
+    echo $BASENAME
+    echo "CONTENTS OF $E2E_TARBALL_CACHE"
+    ls $E2E_TARBALL_CACHE
     if [ ! -f "$E2E_TARBALL_CACHE/$BASENAME" ]; then
-        curl --fail --silent $ARTIFACT_URL --retry 10 --retry-max-time 120 --output $E2E_TARBALL_CACHE/$BASENAME
-        if [ ! 0 -eq $? ]; then
+        echo "Not present. Downloading."
+        curl $ARTIFACT_URL --retry 10 --retry-max-time 120 --output $E2E_TARBALL_CACHE/$BASENAME
+        local res=$?
+        echo "Result is $res"
+        if [ ! 0 -eq $res ]; then
             exit 1
         fi
     fi
-    echo "$E2E_TARBALL_CACHE/$BASENAME"
+    eval $__result="$E2E_TARBALL_CACHE/$BASENAME"
 }
