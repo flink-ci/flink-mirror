@@ -39,10 +39,14 @@ function setup_kafka_dist {
   mkdir -p $TEST_DATA_DIR
   KAFKA_URL="https://archive.apache.org/dist/kafka/$KAFKA_VERSION/kafka_2.12-$KAFKA_VERSION.tgz"
   echo "Downloading Kafka from $KAFKA_URL"
-  cache_path=$(get_artifact $KAFKA_URL)
+  local cache_path=$(get_artifact $KAFKA_URL)
+  echo "Kafka Downloaded to $cache_path"
   ln "$cache_path" "${TEST_DATA_DIR}/kafka.tgz"
+  echo "Kafka ln'd to ${TEST_DATA_DIR}/kafka.tgz"
 
   tar xzf $TEST_DATA_DIR/kafka.tgz -C $TEST_DATA_DIR/
+
+  echo "Kafka untarred to $TEST_DATA_DIR"
 
   # fix kafka config
   sed -i -e "s+^\(dataDir\s*=\s*\).*$+\1$TEST_DATA_DIR/zookeeper+" $KAFKA_DIR/config/zookeeper.properties
@@ -114,7 +118,6 @@ function start_kafka_cluster {
 }
 
 function stop_kafka_cluster {
-  ls $KAFKA_DIR
   if ! [[ -z $($KAFKA_DIR/bin/kafka-server-stop.sh) ]]; then
     echo "Kafka server was already shut down; dumping logs:"
     cat ${KAFKA_DIR}/logs/server.out
