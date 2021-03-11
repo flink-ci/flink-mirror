@@ -114,6 +114,7 @@ function start_kafka_cluster {
 }
 
 function stop_kafka_cluster {
+  ls $KAFKA_DIR
   if ! [[ -z $($KAFKA_DIR/bin/kafka-server-stop.sh) ]]; then
     echo "Kafka server was already shut down; dumping logs:"
     cat ${KAFKA_DIR}/logs/server.out
