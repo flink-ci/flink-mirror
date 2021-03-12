@@ -94,6 +94,7 @@ printf "========================================================================
 # Checkpointing tests
 ################################################################################
 
+echo "E2E cache dir prior to test run: $E2E_TARBALL_CACHE"
 
 if [[ `uname -i` != 'aarch64' ]]; then
     run_test "PyFlink end-to-end test" "$END_TO_END_DIR/test-scripts/test_pyflink.sh" "skip_check_exceptions"
