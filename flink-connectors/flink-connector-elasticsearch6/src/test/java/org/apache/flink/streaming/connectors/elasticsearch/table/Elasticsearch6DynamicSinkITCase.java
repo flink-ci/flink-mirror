@@ -35,6 +35,8 @@ import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.RowKind;
 
+import org.apache.flink.util.TestLogger;
+
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
@@ -60,7 +62,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /** IT tests for {@link Elasticsearch6DynamicSink}. */
-public class Elasticsearch6DynamicSinkITCase {
+public class Elasticsearch6DynamicSinkITCase extends TestLogger {
 
     @ClassRule
     public static ElasticsearchContainer elasticsearchContainer =
