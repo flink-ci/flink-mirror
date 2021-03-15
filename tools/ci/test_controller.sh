@@ -130,7 +130,7 @@ else
   # each test appears twice
   TEST="org.apache.flink.streaming.connectors.elasticsearch.table.Elasticsearch6DynamicSinkITCase#testWritingDocuments"
   for _ in {1..5000}; do
-    run_with_watchdog "run_mvn $MVN_COMMON_OPTIONS $MVN_TEST_OPTIONS $PROFILE $MVN_TEST_MODULES verify -Dtest=$TEST" $CALLBACK_ON_TIMEOUT
+    run_with_watchdog "run_mvn $MVN_COMMON_OPTIONS $MVN_TEST_OPTIONS $PROFILE $MVN_TEST_MODULES verify -Dtest=$TEST -DfailIfNoTests=false" $CALLBACK_ON_TIMEOUT
     EXIT_CODE=$?
     if [ "${EXIT_CODE}" != "0" ]; then
      break
