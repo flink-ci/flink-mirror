@@ -34,7 +34,6 @@ import org.apache.flink.table.data.StringData;
 import org.apache.flink.table.data.TimestampData;
 import org.apache.flink.table.types.DataType;
 import org.apache.flink.types.RowKind;
-
 import org.apache.flink.util.TestLogger;
 
 import org.elasticsearch.action.get.GetRequest;
