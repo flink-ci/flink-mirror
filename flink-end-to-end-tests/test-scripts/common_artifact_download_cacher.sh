@@ -39,7 +39,7 @@ function get_artifact {
     echo "RUN ARTIFACT GET"
     echo $ARTIFACT_URL
     echo $BASENAME
-    echo "CONTENTS OF $E2E_TARBALL_CACHE"
+    echo "CONTENTS OF ${E2E_TARBALL_CACHE}"
     ls $E2E_TARBALL_CACHE
     if [ ! -f "$E2E_TARBALL_CACHE/$BASENAME" ]; then
         echo "Not present. Downloading."

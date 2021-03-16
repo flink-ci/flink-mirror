@@ -101,7 +101,7 @@ cd "${CURRENT_DIR}"
 
 start_cluster
 
-echo "E2E Cache folder prior to Pyflink Table Job: $E2E_TARBALL_CACHE"
+echo "E2E Cache folder prior to Pyflink Table Job: ${E2E_TARBALL_CACHE}"
 echo "Test PyFlink Table job:"
 
 FLINK_PYTHON_TEST_DIR=`cd "${CURRENT_DIR}/../flink-python-test" && pwd -P`
@@ -209,7 +209,7 @@ JOB_ID=$($FLINK_DIR/bin/sql-client.sh embedded \
 
 wait_job_terminal_state "$JOB_ID" "FINISHED"
 
-echo "E2E_TARBALL_CACHE prior to Pyflink DS job: $E2E_TARBALL_CACHE"
+echo "E2E_TARBALL_CACHE prior to Pyflink DS job: ${E2E_TARBALL_CACHE}"
 echo "Test PyFlink DataStream job:"
 
 # prepare Kafka
