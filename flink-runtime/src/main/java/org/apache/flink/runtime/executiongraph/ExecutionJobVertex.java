@@ -85,8 +85,6 @@ public class ExecutionJobVertex
     /** Use the same log for all ExecutionGraph classes. */
     private static final Logger LOG = DefaultExecutionGraph.LOG;
 
-    public static final int VALUE_NOT_SET = -1;
-
     private final Object stateMonitor = new Object();
 
     private final InternalExecutionGraphAccessor graph;
@@ -106,8 +104,6 @@ public class ExecutionJobVertex
     @Nullable private final CoLocationGroup coLocationGroup;
 
     private final InputSplit[] inputSplits;
-
-    private final boolean maxParallelismConfigured;
 
     private int maxParallelism;
 
@@ -143,16 +139,7 @@ public class ExecutionJobVertex
         this.jobVertex = jobVertex;
 
         this.parallelism = jobVertex.getParallelism() > 0 ? jobVertex.getParallelism() : 1;
-
-        final int configuredMaxParallelism = jobVertex.getMaxParallelism();
-
-        this.maxParallelismConfigured = (VALUE_NOT_SET != configuredMaxParallelism);
-
-        // if no max parallelism was configured by the user, we calculate and set a default
-        setMaxParallelismInternal(
-                maxParallelismConfigured
-                        ? configuredMaxParallelism
-                        : KeyGroupRangeAssignment.computeDefaultMaxParallelism(this.parallelism));
+        this.maxParallelism = jobVertex.getMaxParallelism();
 
         // verify that our parallelism is not higher than the maximum parallelism
         if (this.parallelism > maxParallelism) {
@@ -269,19 +256,15 @@ public class ExecutionJobVertex
         return jobVertex.getOperatorIDs();
     }
 
-    public void setMaxParallelism(int maxParallelismDerived) {
+    public void setMaxParallelism(int maxParallelism) {
 
         Preconditions.checkState(
-                !maxParallelismConfigured,
+                isMaxParallelismAutoConfigured(),
                 "Attempt to override a configured max parallelism. Configured: "
                         + this.maxParallelism
                         + ", argument: "
-                        + maxParallelismDerived);
+                        + maxParallelism);
 
-        setMaxParallelismInternal(maxParallelismDerived);
-    }
-
-    private void setMaxParallelismInternal(int maxParallelism) {
         if (maxParallelism == ExecutionConfig.PARALLELISM_AUTO_MAX) {
             maxParallelism = KeyGroupRangeAssignment.UPPER_BOUND_MAX_PARALLELISM;
         }
@@ -324,8 +307,13 @@ public class ExecutionJobVertex
         return resourceProfile;
     }
 
-    public boolean isMaxParallelismConfigured() {
-        return maxParallelismConfigured;
+    /**
+     * Gets whether the max parallelism has been configured by the system.
+     *
+     * @return whether the max parallelism has been configured by the system.
+     */
+    public boolean isMaxParallelismAutoConfigured() {
+        return jobVertex.isMaxParallelismAutoConfigured();
     }
 
     public JobID getJobId() {

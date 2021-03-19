@@ -50,7 +50,6 @@ import org.apache.flink.runtime.executiongraph.TestingDefaultExecutionGraphBuild
 import org.apache.flink.runtime.executiongraph.failover.flip1.partitionrelease.PartitionReleaseStrategy;
 import org.apache.flink.runtime.io.network.partition.JobMasterPartitionTracker;
 import org.apache.flink.runtime.jobgraph.IntermediateResultPartitionID;
-import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.scheduler.ExecutionGraphHandler;
 import org.apache.flink.runtime.scheduler.OperatorCoordinatorHandler;
 import org.apache.flink.runtime.scheduler.strategy.ExecutionVertexID;
@@ -76,6 +75,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.apache.flink.runtime.scheduler.adaptive.WaitingForResourcesTest.assertNonNull;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -717,7 +717,7 @@ public class ExecutingTest extends TestLogger {
         MockExecutionJobVertex() throws JobException {
             super(
                     new MockInternalExecutionGraphAccessor(),
-                    new JobVertex("test"),
+                    createNoOpVertex("test", 1),
                     1,
                     Time.milliseconds(1L),
                     1L,

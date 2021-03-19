@@ -25,6 +25,7 @@ import org.apache.flink.runtime.checkpoint.OperatorSubtaskState;
 import org.apache.flink.runtime.checkpoint.metadata.CheckpointMetadata;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobGraphBuilder;
+import org.apache.flink.runtime.jobgraph.JobGraphConfigurationUtils;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
@@ -109,11 +110,15 @@ public class TestUtils {
         final JobCheckpointingSettings checkpointingSettings =
                 new JobCheckpointingSettings(checkpoinCoordinatorConfiguration, null);
 
-        return JobGraphBuilder.newStreamingJobGraphBuilder()
-                .addJobVertices(Arrays.asList(jobVertices))
-                .setJobCheckpointingSettings(checkpointingSettings)
-                .setSavepointRestoreSettings(savepointRestoreSettings)
-                .build();
+        JobGraph graph =
+                JobGraphBuilder.newStreamingJobGraphBuilder()
+                        .addJobVertices(Arrays.asList(jobVertices))
+                        .setJobCheckpointingSettings(checkpointingSettings)
+                        .setSavepointRestoreSettings(savepointRestoreSettings)
+                        .build();
+
+        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(graph);
+        return graph;
     }
 
     private TestUtils() {

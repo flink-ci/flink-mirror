@@ -30,7 +30,6 @@ import org.apache.flink.runtime.io.network.partition.ResultPartitionType;
 import org.apache.flink.runtime.jobgraph.DistributionPattern;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
-import org.apache.flink.runtime.testtasks.NoOpInvokable;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
@@ -245,10 +244,8 @@ public class DefaultCheckpointPlanCalculatorTest {
         JobVertex[] jobVertices = new JobVertex[vertexDeclarations.size()];
         for (int i = 0; i < vertexDeclarations.size(); ++i) {
             jobVertices[i] =
-                    ExecutionGraphTestUtils.createJobVertex(
-                            vertexName(i),
-                            vertexDeclarations.get(i).parallelism,
-                            NoOpInvokable.class);
+                    ExecutionGraphTestUtils.createNoOpVertex(
+                            vertexName(i), vertexDeclarations.get(i).parallelism);
         }
 
         for (EdgeDeclaration edgeDeclaration : edgeDeclarations) {

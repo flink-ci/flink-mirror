@@ -18,6 +18,7 @@
 
 package org.apache.flink.runtime.jobgraph;
 
+import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.testtasks.NoOpInvokable;
 
 import java.util.Arrays;
@@ -30,22 +31,45 @@ public class JobGraphTestUtils {
     }
 
     public static JobGraph singleNoOpJobGraph() {
-        JobVertex jobVertex = new JobVertex("jobVertex");
+        JobVertex jobVertex = createJobVertex("jobVertex", 1, JobVertex.MAX_PARALLELISM_DEFAULT);
         jobVertex.setInvokableClass(NoOpInvokable.class);
 
-        return JobGraphBuilder.newStreamingJobGraphBuilder().addJobVertex(jobVertex).build();
+        return streamingJobGraph(jobVertex);
     }
 
     public static JobGraph streamingJobGraph(JobVertex... jobVertices) {
-        return JobGraphBuilder.newStreamingJobGraphBuilder()
-                .addJobVertices(Arrays.asList(jobVertices))
-                .build();
+        JobGraph graph =
+                JobGraphBuilder.newStreamingJobGraphBuilder()
+                        .addJobVertices(Arrays.asList(jobVertices))
+                        .build();
+        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(graph);
+        return graph;
     }
 
     public static JobGraph batchJobGraph(JobVertex... jobVertices) {
-        return JobGraphBuilder.newBatchJobGraphBuilder()
-                .addJobVertices(Arrays.asList(jobVertices))
-                .build();
+        JobGraph graph =
+                JobGraphBuilder.newBatchJobGraphBuilder()
+                        .addJobVertices(Arrays.asList(jobVertices))
+                        .build();
+        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(graph);
+        return graph;
+    }
+
+    public static JobVertex createJobVertex(int parallelism, int preconfiguredMaxParallelism) {
+        return createJobVertex("testVertex", parallelism, preconfiguredMaxParallelism);
+    }
+
+    public static JobVertex createJobVertex(
+            String name, int parallelism, int preconfiguredMaxParallelism) {
+        JobVertex jobVertex = new JobVertex(name);
+        jobVertex.setInvokableClass(AbstractInvokable.class);
+        jobVertex.setParallelism(parallelism);
+
+        if (JobVertex.MAX_PARALLELISM_DEFAULT != preconfiguredMaxParallelism) {
+            jobVertex.setMaxParallelism(preconfiguredMaxParallelism);
+        }
+
+        return jobVertex;
     }
 
     private JobGraphTestUtils() {

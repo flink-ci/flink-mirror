@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -62,9 +63,9 @@ public class JobGraphTest extends TestLogger {
 
             // add some vertices
             {
-                JobVertex source1 = new JobVertex("source1");
-                JobVertex source2 = new JobVertex("source2");
-                JobVertex target = new JobVertex("target");
+                JobVertex source1 = createNoOpVertex("source1", 1);
+                JobVertex source2 = createNoOpVertex("source2", 1);
+                JobVertex target = createNoOpVertex("target", 1);
                 target.connectNewDataSetAsInput(
                         source1, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);
                 target.connectNewDataSetAsInput(
@@ -100,12 +101,12 @@ public class JobGraphTest extends TestLogger {
 
     @Test
     public void testTopologicalSort1() {
-        JobVertex source1 = new JobVertex("source1");
-        JobVertex source2 = new JobVertex("source2");
-        JobVertex target1 = new JobVertex("target1");
-        JobVertex target2 = new JobVertex("target2");
-        JobVertex intermediate1 = new JobVertex("intermediate1");
-        JobVertex intermediate2 = new JobVertex("intermediate2");
+        JobVertex source1 = createNoOpVertex("source1", 1);
+        JobVertex source2 = createNoOpVertex("source2", 1);
+        JobVertex target1 = createNoOpVertex("target1", 1);
+        JobVertex target2 = createNoOpVertex("target2", 1);
+        JobVertex intermediate1 = createNoOpVertex("intermediate1", 1);
+        JobVertex intermediate2 = createNoOpVertex("intermediate2", 1);
 
         target1.connectNewDataSetAsInput(
                 source1, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);
@@ -138,13 +139,13 @@ public class JobGraphTest extends TestLogger {
     @Test
     public void testTopologicalSort2() {
         try {
-            JobVertex source1 = new JobVertex("source1");
-            JobVertex source2 = new JobVertex("source2");
-            JobVertex root = new JobVertex("root");
-            JobVertex l11 = new JobVertex("layer 1 - 1");
-            JobVertex l12 = new JobVertex("layer 1 - 2");
-            JobVertex l13 = new JobVertex("layer 1 - 3");
-            JobVertex l2 = new JobVertex("layer 2");
+            JobVertex source1 = createNoOpVertex("source1", 1);
+            JobVertex source2 = createNoOpVertex("source2", 1);
+            JobVertex root = createNoOpVertex("root", 1);
+            JobVertex l11 = createNoOpVertex("layer 1 - 1", 1);
+            JobVertex l12 = createNoOpVertex("layer 1 - 2", 1);
+            JobVertex l13 = createNoOpVertex("layer 1 - 3", 1);
+            JobVertex l2 = createNoOpVertex("layer 2", 1);
 
             root.connectNewDataSetAsInput(
                     l13, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);
@@ -205,10 +206,10 @@ public class JobGraphTest extends TestLogger {
         //             ---------
 
         try {
-            JobVertex source = new JobVertex("source");
-            JobVertex op1 = new JobVertex("op4");
-            JobVertex op2 = new JobVertex("op2");
-            JobVertex op3 = new JobVertex("op3");
+            JobVertex source = createNoOpVertex("source", 1);
+            JobVertex op1 = createNoOpVertex("op4", 1);
+            JobVertex op2 = createNoOpVertex("op2", 1);
+            JobVertex op3 = createNoOpVertex("op3", 1);
 
             op1.connectNewDataSetAsInput(
                     source, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);
@@ -237,10 +238,10 @@ public class JobGraphTest extends TestLogger {
     @Test
     public void testTopoSortCyclicGraphNoSources() {
         try {
-            JobVertex v1 = new JobVertex("1");
-            JobVertex v2 = new JobVertex("2");
-            JobVertex v3 = new JobVertex("3");
-            JobVertex v4 = new JobVertex("4");
+            JobVertex v1 = createNoOpVertex("1", 1);
+            JobVertex v2 = createNoOpVertex("2", 1);
+            JobVertex v3 = createNoOpVertex("3", 1);
+            JobVertex v4 = createNoOpVertex("4", 1);
 
             v1.connectNewDataSetAsInput(
                     v4, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);
@@ -267,12 +268,12 @@ public class JobGraphTest extends TestLogger {
     @Test
     public void testTopoSortCyclicGraphIntermediateCycle() {
         try {
-            JobVertex source = new JobVertex("source");
-            JobVertex v1 = new JobVertex("1");
-            JobVertex v2 = new JobVertex("2");
-            JobVertex v3 = new JobVertex("3");
-            JobVertex v4 = new JobVertex("4");
-            JobVertex target = new JobVertex("target");
+            JobVertex source = createNoOpVertex("source", 1);
+            JobVertex v1 = createNoOpVertex("1", 1);
+            JobVertex v2 = createNoOpVertex("2", 1);
+            JobVertex v3 = createNoOpVertex("3", 1);
+            JobVertex v4 = createNoOpVertex("4", 1);
+            JobVertex target = createNoOpVertex("target", 1);
 
             v1.connectNewDataSetAsInput(
                     source, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);
@@ -405,10 +406,10 @@ public class JobGraphTest extends TestLogger {
 
     @Test
     public void testGetSlotSharingGroups() {
-        final JobVertex v1 = new JobVertex("1");
-        final JobVertex v2 = new JobVertex("2");
-        final JobVertex v3 = new JobVertex("3");
-        final JobVertex v4 = new JobVertex("4");
+        final JobVertex v1 = createNoOpVertex("1", 1);
+        final JobVertex v2 = createNoOpVertex("2", 1);
+        final JobVertex v3 = createNoOpVertex("3", 1);
+        final JobVertex v4 = createNoOpVertex("4", 1);
 
         final SlotSharingGroup group1 = new SlotSharingGroup();
         v1.setSlotSharingGroup(group1);

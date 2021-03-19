@@ -18,8 +18,6 @@
 
 package org.apache.flink.runtime.executiongraph;
 
-import org.apache.flink.api.common.JobID;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.io.InputSplit;
 import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.core.io.InputSplitSource;
@@ -42,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
@@ -63,17 +62,9 @@ public class DefaultExecutionGraphConstructionTest {
 
     @Test
     public void testExecutionAttemptIdInTwoIdenticalJobsIsNotSame() throws Exception {
-        JobVertex v1 = new JobVertex("vertex1");
-        JobVertex v2 = new JobVertex("vertex2");
-        JobVertex v3 = new JobVertex("vertex3");
-
-        v1.setParallelism(5);
-        v2.setParallelism(7);
-        v3.setParallelism(2);
-
-        v1.setInvokableClass(AbstractInvokable.class);
-        v2.setInvokableClass(AbstractInvokable.class);
-        v3.setInvokableClass(AbstractInvokable.class);
+        JobVertex v1 = createNoOpVertex("vertex1", 5);
+        JobVertex v2 = createNoOpVertex("vertex2", 7);
+        JobVertex v3 = createNoOpVertex("vertex3", 2);
 
         List<JobVertex> ordered = new ArrayList<>(Arrays.asList(v1, v2, v3));
 
@@ -104,23 +95,11 @@ public class DefaultExecutionGraphConstructionTest {
      */
     @Test
     public void testCreateSimpleGraphBipartite() throws Exception {
-        JobVertex v1 = new JobVertex("vertex1");
-        JobVertex v2 = new JobVertex("vertex2");
-        JobVertex v3 = new JobVertex("vertex3");
-        JobVertex v4 = new JobVertex("vertex4");
-        JobVertex v5 = new JobVertex("vertex5");
-
-        v1.setParallelism(5);
-        v2.setParallelism(7);
-        v3.setParallelism(2);
-        v4.setParallelism(11);
-        v5.setParallelism(4);
-
-        v1.setInvokableClass(AbstractInvokable.class);
-        v2.setInvokableClass(AbstractInvokable.class);
-        v3.setInvokableClass(AbstractInvokable.class);
-        v4.setInvokableClass(AbstractInvokable.class);
-        v5.setInvokableClass(AbstractInvokable.class);
+        JobVertex v1 = createNoOpVertex("vertex1", 5);
+        JobVertex v2 = createNoOpVertex("vertex2", 7);
+        JobVertex v3 = createNoOpVertex("vertex3", 2);
+        JobVertex v4 = createNoOpVertex("vertex4", 11);
+        JobVertex v5 = createNoOpVertex("vertex5", 4);
 
         v2.connectNewDataSetAsInput(
                 v1, DistributionPattern.ALL_TO_ALL, ResultPartitionType.PIPELINED);
@@ -149,17 +128,9 @@ public class DefaultExecutionGraphConstructionTest {
     @Test
     public void testAttachViaDataSets() throws Exception {
         // construct part one of the execution graph
-        JobVertex v1 = new JobVertex("vertex1");
-        JobVertex v2 = new JobVertex("vertex2");
-        JobVertex v3 = new JobVertex("vertex3");
-
-        v1.setParallelism(5);
-        v2.setParallelism(7);
-        v3.setParallelism(2);
-
-        v1.setInvokableClass(AbstractInvokable.class);
-        v2.setInvokableClass(AbstractInvokable.class);
-        v3.setInvokableClass(AbstractInvokable.class);
+        JobVertex v1 = createNoOpVertex("vertex1", 5);
+        JobVertex v2 = createNoOpVertex("vertex2", 7);
+        JobVertex v3 = createNoOpVertex("vertex3", 2);
 
         // this creates an intermediate result for v1
         v2.connectNewDataSetAsInput(
@@ -184,13 +155,8 @@ public class DefaultExecutionGraphConstructionTest {
 
         // attach the second part of the graph
 
-        JobVertex v4 = new JobVertex("vertex4");
-        JobVertex v5 = new JobVertex("vertex5");
-        v4.setParallelism(11);
-        v5.setParallelism(4);
-
-        v4.setInvokableClass(AbstractInvokable.class);
-        v5.setInvokableClass(AbstractInvokable.class);
+        JobVertex v4 = createNoOpVertex("vertex4", 11);
+        JobVertex v5 = createNoOpVertex("vertex5", 4);
 
         v4.connectDataSetAsInput(v2result, DistributionPattern.ALL_TO_ALL);
         v4.connectDataSetAsInput(v3result_1, DistributionPattern.ALL_TO_ALL);
@@ -214,17 +180,9 @@ public class DefaultExecutionGraphConstructionTest {
     @Test
     public void testAttachViaIds() throws Exception {
         // construct part one of the execution graph
-        JobVertex v1 = new JobVertex("vertex1");
-        JobVertex v2 = new JobVertex("vertex2");
-        JobVertex v3 = new JobVertex("vertex3");
-
-        v1.setParallelism(5);
-        v2.setParallelism(7);
-        v3.setParallelism(2);
-
-        v1.setInvokableClass(AbstractInvokable.class);
-        v2.setInvokableClass(AbstractInvokable.class);
-        v3.setInvokableClass(AbstractInvokable.class);
+        JobVertex v1 = createNoOpVertex("vertex1", 5);
+        JobVertex v2 = createNoOpVertex("vertex2", 7);
+        JobVertex v3 = createNoOpVertex("vertex3", 2);
 
         // this creates an intermediate result for v1
         v2.connectNewDataSetAsInput(
@@ -249,13 +207,8 @@ public class DefaultExecutionGraphConstructionTest {
 
         // attach the second part of the graph
 
-        JobVertex v4 = new JobVertex("vertex4");
-        JobVertex v5 = new JobVertex("vertex5");
-        v4.setParallelism(11);
-        v5.setParallelism(4);
-
-        v4.setInvokableClass(AbstractInvokable.class);
-        v5.setInvokableClass(AbstractInvokable.class);
+        JobVertex v4 = createNoOpVertex("vertex4", 11);
+        JobVertex v5 = createNoOpVertex("vertex5", 4);
 
         v4.connectIdInput(v2result.getId(), DistributionPattern.ALL_TO_ALL);
         v4.connectIdInput(v3result_1.getId(), DistributionPattern.ALL_TO_ALL);
@@ -298,9 +251,7 @@ public class DefaultExecutionGraphConstructionTest {
     @Test
     public void testCannotConnectMissingId() throws Exception {
         // construct part one of the execution graph
-        JobVertex v1 = new JobVertex("vertex1");
-        v1.setParallelism(7);
-        v1.setInvokableClass(AbstractInvokable.class);
+        JobVertex v1 = createNoOpVertex("vertex1", 7);
 
         List<JobVertex> ordered = new ArrayList<JobVertex>(Arrays.asList(v1));
 
@@ -329,23 +280,11 @@ public class DefaultExecutionGraphConstructionTest {
 
     @Test
     public void testCannotConnectWrongOrder() throws Exception {
-        JobVertex v1 = new JobVertex("vertex1");
-        JobVertex v2 = new JobVertex("vertex2");
-        JobVertex v3 = new JobVertex("vertex3");
-        JobVertex v4 = new JobVertex("vertex4");
-        JobVertex v5 = new JobVertex("vertex5");
-
-        v1.setParallelism(5);
-        v2.setParallelism(7);
-        v3.setParallelism(2);
-        v4.setParallelism(11);
-        v5.setParallelism(4);
-
-        v1.setInvokableClass(AbstractInvokable.class);
-        v2.setInvokableClass(AbstractInvokable.class);
-        v3.setInvokableClass(AbstractInvokable.class);
-        v4.setInvokableClass(AbstractInvokable.class);
-        v5.setInvokableClass(AbstractInvokable.class);
+        JobVertex v1 = createNoOpVertex("vertex1", 5);
+        JobVertex v2 = createNoOpVertex("vertex2", 7);
+        JobVertex v3 = createNoOpVertex("vertex3", 2);
+        JobVertex v4 = createNoOpVertex("vertex4", 11);
+        JobVertex v5 = createNoOpVertex("vertex5", 4);
 
         v2.connectNewDataSetAsInput(
                 v1, DistributionPattern.ALL_TO_ALL, ResultPartitionType.PIPELINED);
@@ -387,27 +326,11 @@ public class DefaultExecutionGraphConstructionTest {
             when(source1.getInputSplitAssigner(emptySplits)).thenReturn(assigner1);
             when(source2.getInputSplitAssigner(emptySplits)).thenReturn(assigner2);
 
-            final JobID jobId = new JobID();
-            final String jobName = "Test Job Sample Name";
-            final Configuration cfg = new Configuration();
-
-            JobVertex v1 = new JobVertex("vertex1");
-            JobVertex v2 = new JobVertex("vertex2");
-            JobVertex v3 = new JobVertex("vertex3");
-            JobVertex v4 = new JobVertex("vertex4");
-            JobVertex v5 = new JobVertex("vertex5");
-
-            v1.setParallelism(5);
-            v2.setParallelism(7);
-            v3.setParallelism(2);
-            v4.setParallelism(11);
-            v5.setParallelism(4);
-
-            v1.setInvokableClass(AbstractInvokable.class);
-            v2.setInvokableClass(AbstractInvokable.class);
-            v3.setInvokableClass(AbstractInvokable.class);
-            v4.setInvokableClass(AbstractInvokable.class);
-            v5.setInvokableClass(AbstractInvokable.class);
+            JobVertex v1 = createNoOpVertex("vertex1", 5);
+            JobVertex v2 = createNoOpVertex("vertex2", 7);
+            JobVertex v3 = createNoOpVertex("vertex3", 2);
+            JobVertex v4 = createNoOpVertex("vertex4", 11);
+            JobVertex v5 = createNoOpVertex("vertex5", 4);
 
             v2.connectNewDataSetAsInput(
                     v1, DistributionPattern.ALL_TO_ALL, ResultPartitionType.PIPELINED);
@@ -444,13 +367,9 @@ public class DefaultExecutionGraphConstructionTest {
     @Test
     public void testMoreThanOneConsumerForIntermediateResult() {
         try {
-            JobVertex v1 = new JobVertex("vertex1");
-            JobVertex v2 = new JobVertex("vertex2");
-            JobVertex v3 = new JobVertex("vertex3");
-
-            v1.setParallelism(5);
-            v2.setParallelism(7);
-            v3.setParallelism(2);
+            JobVertex v1 = createNoOpVertex("vertex1", 5);
+            JobVertex v2 = createNoOpVertex("vertex2", 7);
+            JobVertex v3 = createNoOpVertex("vertex3", 2);
 
             IntermediateDataSet result =
                     v1.createAndAddResultDataSet(ResultPartitionType.PIPELINED);

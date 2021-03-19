@@ -162,7 +162,7 @@ public class Checkpoints {
             if (executionJobVertex != null) {
 
                 if (executionJobVertex.getMaxParallelism() == operatorState.getMaxParallelism()
-                        || !executionJobVertex.isMaxParallelismConfigured()) {
+                        || executionJobVertex.isMaxParallelismAutoConfigured()) {
                     operatorStates.put(operatorState.getOperatorID(), operatorState);
                 } else {
                     String msg =

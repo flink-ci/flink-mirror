@@ -33,7 +33,6 @@ import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobGraphBuilder;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
-import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.jobgraph.tasks.CheckpointCoordinatorConfiguration;
 import org.apache.flink.runtime.jobgraph.tasks.JobCheckpointingSettings;
 import org.apache.flink.runtime.scheduler.SchedulerBase;
@@ -53,6 +52,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertArrayEquals;
@@ -72,17 +72,8 @@ public class ArchivedExecutionGraphTest extends TestLogger {
         // Setup
         // -------------------------------------------------------------------------------------------------------------
 
-        JobVertexID v1ID = new JobVertexID();
-        JobVertexID v2ID = new JobVertexID();
-
-        JobVertex v1 = new JobVertex("v1", v1ID);
-        JobVertex v2 = new JobVertex("v2", v2ID);
-
-        v1.setParallelism(1);
-        v2.setParallelism(2);
-
-        v1.setInvokableClass(AbstractInvokable.class);
-        v2.setInvokableClass(AbstractInvokable.class);
+        JobVertex v1 = createNoOpVertex("v1", 1);
+        JobVertex v2 = createNoOpVertex("v2", 2);
 
         ExecutionConfig config = new ExecutionConfig();
 

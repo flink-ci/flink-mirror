@@ -36,7 +36,6 @@ import org.apache.flink.runtime.leaderretrieval.SettableLeaderRetrievalService;
 import org.apache.flink.runtime.rest.handler.legacy.utils.ArchivedExecutionGraphBuilder;
 import org.apache.flink.runtime.scheduler.ExecutionGraphInfo;
 import org.apache.flink.runtime.testingUtils.TestingUtils;
-import org.apache.flink.runtime.testtasks.NoOpInvokable;
 import org.apache.flink.runtime.util.TestingFatalErrorHandler;
 import org.apache.flink.runtime.util.TestingUserCodeClassLoader;
 import org.apache.flink.util.FlinkException;
@@ -57,6 +56,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -83,8 +83,7 @@ public class JobManagerRunnerImplTest extends TestLogger {
     public static void setupClass() {
         defaultJobMasterServiceFactory = new TestingJobMasterServiceFactory();
 
-        final JobVertex jobVertex = new JobVertex("Test vertex");
-        jobVertex.setInvokableClass(NoOpInvokable.class);
+        final JobVertex jobVertex = createNoOpVertex("Test vertex", 1);
         jobGraph = JobGraphTestUtils.streamingJobGraph(jobVertex);
 
         executionGraphInfo =

@@ -32,6 +32,7 @@ import org.apache.flink.runtime.executiongraph.failover.flip1.TestRestartBackoff
 import org.apache.flink.runtime.executiongraph.utils.SimpleAckingTaskManagerGateway;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobGraphBuilder;
+import org.apache.flink.runtime.jobgraph.JobGraphConfigurationUtils;
 import org.apache.flink.runtime.jobgraph.JobGraphTestUtils;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobmanager.slots.TaskManagerGateway;
@@ -50,7 +51,6 @@ import org.apache.flink.runtime.scheduler.SchedulerTestingUtils;
 import org.apache.flink.runtime.taskexecutor.slot.SlotOffer;
 import org.apache.flink.runtime.taskmanager.LocalTaskManagerLocation;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
-import org.apache.flink.runtime.testtasks.NoOpInvokable;
 import org.apache.flink.util.TestLogger;
 
 import org.junit.Before;
@@ -214,9 +214,8 @@ public class ExecutionGraphRestartTest extends TestLogger {
      */
     @Test
     public void testFailingExecutionAfterRestart() throws Exception {
-        JobVertex sender = ExecutionGraphTestUtils.createJobVertex("Task1", 1, NoOpInvokable.class);
-        JobVertex receiver =
-                ExecutionGraphTestUtils.createJobVertex("Task2", 1, NoOpInvokable.class);
+        JobVertex sender = ExecutionGraphTestUtils.createNoOpVertex("Task1", 1);
+        JobVertex receiver = ExecutionGraphTestUtils.createNoOpVertex("Task2", 1);
         JobGraph jobGraph = JobGraphTestUtils.streamingJobGraph(sender, receiver);
 
         try (SlotPool slotPool = createSlotPoolImpl()) {
@@ -359,21 +358,22 @@ public class ExecutionGraphRestartTest extends TestLogger {
     }
 
     private static JobGraph createJobGraph() {
-        JobVertex sender =
-                ExecutionGraphTestUtils.createJobVertex("Task", NUM_TASKS, NoOpInvokable.class);
+        JobVertex sender = ExecutionGraphTestUtils.createNoOpVertex("Task", NUM_TASKS);
         return JobGraphTestUtils.streamingJobGraph(sender);
     }
 
     private static JobGraph createJobGraphToCancel() throws IOException {
-        JobVertex vertex =
-                ExecutionGraphTestUtils.createJobVertex("Test Vertex", 1, NoOpInvokable.class);
+        JobVertex vertex = ExecutionGraphTestUtils.createNoOpVertex("Test Vertex", 1);
         ExecutionConfig executionConfig = new ExecutionConfig();
         executionConfig.setRestartStrategy(
                 RestartStrategies.fixedDelayRestart(Integer.MAX_VALUE, Integer.MAX_VALUE));
 
-        return JobGraphBuilder.newStreamingJobGraphBuilder()
-                .addJobVertex(vertex)
-                .setExecutionConfig(executionConfig)
-                .build();
+        JobGraph graph =
+                JobGraphBuilder.newStreamingJobGraphBuilder()
+                        .addJobVertex(vertex)
+                        .setExecutionConfig(executionConfig)
+                        .build();
+        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(graph);
+        return graph;
     }
 }

@@ -28,7 +28,6 @@ import org.apache.flink.runtime.executiongraph.ExecutionVertex;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobGraphBuilder;
 import org.apache.flink.runtime.jobgraph.JobVertex;
-import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.jobgraph.tasks.CheckpointCoordinatorConfiguration;
 import org.apache.flink.runtime.jobgraph.tasks.JobCheckpointingSettings;
 import org.apache.flink.runtime.scheduler.SchedulerBase;
@@ -41,6 +40,7 @@ import org.junit.Test;
 
 import java.util.concurrent.CompletableFuture;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -132,8 +132,7 @@ public class ExecutionGraphCheckpointCoordinatorTest extends TestLogger {
             CheckpointIDCounter counter, CompletedCheckpointStore store) throws Exception {
         final Time timeout = Time.days(1L);
 
-        final JobVertex jobVertex = new JobVertex("MockVertex");
-        jobVertex.setInvokableClass(AbstractInvokable.class);
+        final JobVertex jobVertex = createNoOpVertex("MockVertex", 1);
 
         final CheckpointCoordinatorConfiguration chkConfig =
                 new CheckpointCoordinatorConfiguration(

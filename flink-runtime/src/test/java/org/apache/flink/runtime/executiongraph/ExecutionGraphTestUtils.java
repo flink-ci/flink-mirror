@@ -347,9 +347,14 @@ public class ExecutionGraphTestUtils {
     }
 
     public static JobVertex createNoOpVertex(String name, int parallelism) {
+        return createNoOpVertex(name, parallelism, parallelism);
+    }
+
+    public static JobVertex createNoOpVertex(String name, int parallelism, int maxParallelism) {
         JobVertex vertex = new JobVertex(name);
         vertex.setInvokableClass(NoOpInvokable.class);
         vertex.setParallelism(parallelism);
+        vertex.setMaxParallelism(maxParallelism);
         return vertex;
     }
 
@@ -359,14 +364,6 @@ public class ExecutionGraphTestUtils {
 
     public static ExecutionVertexID createRandomExecutionVertexId() {
         return new ExecutionVertexID(new JobVertexID(), new Random().nextInt(Integer.MAX_VALUE));
-    }
-
-    public static JobVertex createJobVertex(
-            String task1, int numTasks, Class<NoOpInvokable> invokable) {
-        JobVertex groupVertex = new JobVertex(task1);
-        groupVertex.setInvokableClass(invokable);
-        groupVertex.setParallelism(numTasks);
-        return groupVertex;
     }
 
     public static ExecutionJobVertex getExecutionJobVertex(

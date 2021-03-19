@@ -85,6 +85,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.apache.flink.runtime.scheduler.SchedulerTestingUtils.acknowledgePendingCheckpoint;
 import static org.apache.flink.runtime.scheduler.SchedulerTestingUtils.enableCheckpointing;
 import static org.apache.flink.runtime.scheduler.SchedulerTestingUtils.getCheckpointCoordinator;
@@ -1170,11 +1171,9 @@ public class DefaultSchedulerTest extends TestLogger {
     }
 
     private static JobGraph nonParallelSourceSinkJobGraph() {
-        final JobVertex source = new JobVertex("source");
-        source.setInvokableClass(NoOpInvokable.class);
+        final JobVertex source = createNoOpVertex("source", 1);
 
-        final JobVertex sink = new JobVertex("sink");
-        sink.setInvokableClass(NoOpInvokable.class);
+        final JobVertex sink = createNoOpVertex("sink", 1);
 
         sink.connectNewDataSetAsInput(
                 source, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);

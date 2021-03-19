@@ -26,7 +26,6 @@ import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobGraphTestUtils;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
-import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.jobmaster.slotpool.PhysicalSlot;
 import org.apache.flink.runtime.scheduler.SchedulerBase;
 import org.apache.flink.runtime.scheduler.SchedulerTestingUtils;
@@ -37,17 +36,15 @@ import org.apache.flink.runtime.shuffle.ProducerDescriptor;
 import org.apache.flink.runtime.shuffle.ShuffleDescriptor;
 import org.apache.flink.runtime.shuffle.ShuffleMaster;
 import org.apache.flink.runtime.taskmanager.LocalTaskManagerLocation;
-import org.apache.flink.runtime.testtasks.NoOpInvokable;
 import org.apache.flink.util.FlinkException;
 import org.apache.flink.util.TestLogger;
 
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
-
 import java.util.concurrent.CompletableFuture;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.apache.flink.runtime.io.network.partition.ResultPartitionType.PIPELINED;
 import static org.apache.flink.runtime.jobgraph.DistributionPattern.POINTWISE;
 import static org.hamcrest.Matchers.is;
@@ -75,7 +72,7 @@ public class ExecutionTest extends TestLogger {
      */
     @Test
     public void testTerminationFutureIsCompletedAfterSlotRelease() throws Exception {
-        final JobVertex jobVertex = createNoOpJobVertex();
+        final JobVertex jobVertex = createNoOpVertex(1);
         final JobVertexID jobVertexId = jobVertex.getID();
 
         final TestingPhysicalSlotProvider physicalSlotProvider =
@@ -120,7 +117,7 @@ public class ExecutionTest extends TestLogger {
      */
     @Test
     public void testTaskRestoreStateIsNulledAfterDeployment() throws Exception {
-        final JobVertex jobVertex = createNoOpJobVertex();
+        final JobVertex jobVertex = createNoOpVertex(1);
         final JobVertexID jobVertexId = jobVertex.getID();
 
         final SchedulerBase scheduler =
@@ -154,7 +151,7 @@ public class ExecutionTest extends TestLogger {
     @Test
     public void testCanceledExecutionReturnsSlot() throws Exception {
 
-        final JobVertex jobVertex = createNoOpJobVertex();
+        final JobVertex jobVertex = createNoOpVertex(1);
         final JobVertexID jobVertexId = jobVertex.getID();
 
         final SimpleAckingTaskManagerGateway taskManagerGateway =
@@ -202,7 +199,7 @@ public class ExecutionTest extends TestLogger {
     /** Tests that a slot release will atomically release the assigned {@link Execution}. */
     @Test
     public void testSlotReleaseAtomicallyReleasesExecution() throws Exception {
-        final JobVertex jobVertex = createNoOpJobVertex();
+        final JobVertex jobVertex = createNoOpVertex(1);
 
         final TestingPhysicalSlotProvider physicalSlotProvider =
                 TestingPhysicalSlotProvider.createWithLimitedAmountOfPhysicalSlots(1);
@@ -246,11 +243,9 @@ public class ExecutionTest extends TestLogger {
     @Test
     public void testIncompletePartitionRegistrationFutureIsRejected() throws Exception {
         final ShuffleMaster<ShuffleDescriptor> shuffleMaster = new TestingShuffleMaster();
-        final JobVertex source = new JobVertex("source");
-        final JobVertex target = new JobVertex("target");
+        final JobVertex source = createNoOpVertex("source", 1);
+        final JobVertex target = createNoOpVertex("target", 1);
 
-        source.setInvokableClass(AbstractInvokable.class);
-        target.setInvokableClass(AbstractInvokable.class);
         target.connectNewDataSetAsInput(source, POINTWISE, PIPELINED);
 
         final JobGraph jobGraph = JobGraphTestUtils.streamingJobGraph(source, target);
@@ -284,13 +279,5 @@ public class ExecutionTest extends TestLogger {
 
         @Override
         public void releasePartitionExternally(ShuffleDescriptor shuffleDescriptor) {}
-    }
-
-    @Nonnull
-    private JobVertex createNoOpJobVertex() {
-        final JobVertex jobVertex = new JobVertex("Test vertex", new JobVertexID());
-        jobVertex.setInvokableClass(NoOpInvokable.class);
-
-        return jobVertex;
     }
 }

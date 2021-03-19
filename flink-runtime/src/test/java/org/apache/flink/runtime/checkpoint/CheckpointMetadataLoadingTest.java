@@ -213,7 +213,7 @@ public class CheckpointMetadataLoadingTest {
                 .thenReturn(Collections.singletonList(OperatorIDPair.generatedIDOnly(operatorId)));
 
         if (parallelism != maxParallelism) {
-            when(vertex.isMaxParallelismConfigured()).thenReturn(true);
+            when(vertex.isMaxParallelismAutoConfigured()).thenReturn(false);
         }
 
         Map<JobVertexID, ExecutionJobVertex> tasks = new HashMap<>();

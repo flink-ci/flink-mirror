@@ -650,7 +650,7 @@ public class StateAssignmentOperation {
         // satisfy the restored state
         if (operatorState.getMaxParallelism() != executionJobVertex.getMaxParallelism()) {
 
-            if (!executionJobVertex.isMaxParallelismConfigured()) {
+            if (executionJobVertex.isMaxParallelismAutoConfigured()) {
                 // if the max parallelism was not explicitly specified by the user, we derive it
                 // from the state
 

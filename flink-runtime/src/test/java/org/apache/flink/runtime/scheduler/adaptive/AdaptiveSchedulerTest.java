@@ -49,7 +49,6 @@ import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobGraphTestUtils;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobgraph.OperatorID;
-import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.jobgraph.tasks.CheckpointCoordinatorConfiguration;
 import org.apache.flink.runtime.jobgraph.tasks.JobCheckpointingSettings;
 import org.apache.flink.runtime.jobmanager.PartitionProducerDisposedException;
@@ -98,6 +97,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.apache.flink.core.testutils.FlinkMatchers.futureFailedWith;
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.apache.flink.runtime.jobmaster.slotpool.DefaultDeclarativeSlotPoolTest.createSlotOffersForResourceRequirements;
 import static org.apache.flink.runtime.jobmaster.slotpool.SlotPoolTestUtils.offerSlots;
 import static org.apache.flink.runtime.metrics.groups.UnregisteredMetricGroups.createUnregisteredJobManagerMetricGroup;
@@ -111,19 +111,13 @@ import static org.junit.Assert.assertThat;
 public class AdaptiveSchedulerTest extends TestLogger {
 
     private static final int PARALLELISM = 4;
-    private static final JobVertex JOB_VERTEX;
+    private static final JobVertex JOB_VERTEX = createNoOpVertex("v1", PARALLELISM);
 
     @ClassRule public static final TemporaryFolder TEMPORARY_FOLDER = new TemporaryFolder();
 
     @ClassRule
     public static final TestExecutorResource<ScheduledExecutorService> TEST_EXECUTOR_RESOURCE =
             new TestExecutorResource<>(Executors::newSingleThreadScheduledExecutor);
-
-    static {
-        JOB_VERTEX = new JobVertex("v1");
-        JOB_VERTEX.setParallelism(PARALLELISM);
-        JOB_VERTEX.setInvokableClass(AbstractInvokable.class);
-    }
 
     private final ManuallyTriggeredComponentMainThreadExecutor mainThreadExecutor =
             new ManuallyTriggeredComponentMainThreadExecutor(Thread.currentThread());

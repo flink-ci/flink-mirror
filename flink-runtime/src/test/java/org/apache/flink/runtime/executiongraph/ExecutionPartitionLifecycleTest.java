@@ -34,7 +34,6 @@ import org.apache.flink.runtime.jobgraph.IntermediateResultPartitionID;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobGraphTestUtils;
 import org.apache.flink.runtime.jobgraph.JobVertex;
-import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobmanager.slots.TaskManagerGateway;
 import org.apache.flink.runtime.scheduler.SchedulerBase;
 import org.apache.flink.runtime.scheduler.SchedulerTestingUtils;
@@ -47,13 +46,10 @@ import org.apache.flink.runtime.shuffle.ShuffleDescriptor;
 import org.apache.flink.runtime.shuffle.ShuffleMaster;
 import org.apache.flink.runtime.taskmanager.LocalTaskManagerLocation;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
-import org.apache.flink.runtime.testtasks.NoOpInvokable;
 import org.apache.flink.util.TestLogger;
 
 import org.junit.ClassRule;
 import org.junit.Test;
-
-import javax.annotation.Nonnull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -63,6 +59,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -259,8 +256,8 @@ public class ExecutionPartitionLifecycleTest extends TestLogger {
             TaskManagerGateway taskManagerGateway,
             ShuffleMaster<?> shuffleMaster)
             throws Exception {
-        final JobVertex producerVertex = createNoOpJobVertex();
-        final JobVertex consumerVertex = createNoOpJobVertex();
+        final JobVertex producerVertex = createNoOpVertex(1);
+        final JobVertex consumerVertex = createNoOpVertex(1);
         consumerVertex.connectNewDataSetAsInput(
                 producerVertex, DistributionPattern.ALL_TO_ALL, resultPartitionType);
 
@@ -305,14 +302,6 @@ public class ExecutionPartitionLifecycleTest extends TestLogger {
                         .get();
         taskExecutorResourceId = taskManagerLocation.getResourceID();
         jobId = executionGraph.getJobID();
-    }
-
-    @Nonnull
-    private JobVertex createNoOpJobVertex() {
-        final JobVertex jobVertex = new JobVertex("Test vertex", new JobVertexID());
-        jobVertex.setInvokableClass(NoOpInvokable.class);
-
-        return jobVertex;
     }
 
     private static class TestingShuffleMaster implements ShuffleMaster<ShuffleDescriptor> {

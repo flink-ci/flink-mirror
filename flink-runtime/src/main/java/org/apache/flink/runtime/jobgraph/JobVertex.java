@@ -81,6 +81,9 @@ public class JobVertex implements java.io.Serializable {
     /** Maximum number of subtasks to split this task into a runtime. */
     private int maxParallelism = MAX_PARALLELISM_DEFAULT;
 
+    /** Whether the maximum parallelism has been configured automatically by the system. */
+    private boolean maxParallelismIsAutoConfigured = false;
+
     /** The minimum resource of the vertex. */
     private ResourceSpec minResources = ResourceSpec.DEFAULT;
 
@@ -314,6 +317,27 @@ public class JobVertex implements java.io.Serializable {
      */
     public void setMaxParallelism(int maxParallelism) {
         this.maxParallelism = maxParallelism;
+    }
+
+    /**
+     * Sets the maximum parallelism for the task along with a flag indicating this has been
+     * auto-configured by the system.
+     *
+     * @param maxParallelism The maximum parallelism to be set. must be between 1 and
+     *     Short.MAX_VALUE.
+     */
+    void setAutoConfiguredMaxParallelism(int maxParallelism) {
+        setMaxParallelism(maxParallelism);
+        this.maxParallelismIsAutoConfigured = true;
+    }
+
+    /**
+     * Gets whether the maximum parallelism for the task has been configured by the system.
+     *
+     * @return Whether the maximum parallelism for the task has been configured by the system.
+     */
+    public boolean isMaxParallelismAutoConfigured() {
+        return maxParallelismIsAutoConfigured;
     }
 
     /**

@@ -38,13 +38,14 @@ import org.apache.flink.runtime.jobmaster.TestingLogicalSlotBuilder;
 import org.apache.flink.runtime.scheduler.DefaultScheduler;
 import org.apache.flink.runtime.scheduler.SchedulerTestingUtils;
 import org.apache.flink.runtime.taskmanager.TaskExecutionState;
-import org.apache.flink.runtime.testtasks.NoOpInvokable;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 
 /** Utilities for scheduler benchmarks. */
 public class SchedulerBenchmarkUtils {
@@ -53,14 +54,10 @@ public class SchedulerBenchmarkUtils {
 
         final List<JobVertex> jobVertices = new ArrayList<>();
 
-        final JobVertex source = new JobVertex("source");
-        source.setInvokableClass(NoOpInvokable.class);
-        source.setParallelism(jobConfiguration.getParallelism());
+        final JobVertex source = createNoOpVertex("source", jobConfiguration.getParallelism());
         jobVertices.add(source);
 
-        final JobVertex sink = new JobVertex("sink");
-        sink.setInvokableClass(NoOpInvokable.class);
-        sink.setParallelism(jobConfiguration.getParallelism());
+        final JobVertex sink = createNoOpVertex("sink", jobConfiguration.getParallelism());
         jobVertices.add(sink);
 
         sink.connectNewDataSetAsInput(

@@ -116,6 +116,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -361,12 +362,10 @@ public class DispatcherTest extends TestLogger {
     public void testJobSubmissionWithPartialResourceConfigured() throws Exception {
         ResourceSpec resourceSpec = ResourceSpec.newBuilder(2.0, 0).build();
 
-        final JobVertex firstVertex = new JobVertex("firstVertex");
-        firstVertex.setInvokableClass(NoOpInvokable.class);
+        final JobVertex firstVertex = createNoOpVertex("firstVertex", 1);
         firstVertex.setResources(resourceSpec, resourceSpec);
 
-        final JobVertex secondVertex = new JobVertex("secondVertex");
-        secondVertex.setInvokableClass(NoOpInvokable.class);
+        final JobVertex secondVertex = createNoOpVertex("secondVertex", 1);
 
         JobGraph jobGraphWithTwoVertices =
                 JobGraphTestUtils.streamingJobGraph(firstVertex, secondVertex);
@@ -1026,12 +1025,11 @@ public class DispatcherTest extends TestLogger {
     private Tuple2<JobGraph, BlockingJobVertex> getBlockingJobGraphAndVertex() {
         final BlockingJobVertex blockingJobVertex = new BlockingJobVertex("testVertex");
         blockingJobVertex.setInvokableClass(NoOpInvokable.class);
-        return Tuple2.of(
-                JobGraphBuilder.newStreamingJobGraphBuilder()
-                        .setJobId(jobId)
-                        .addJobVertex(blockingJobVertex)
-                        .build(),
-                blockingJobVertex);
+        blockingJobVertex.setParallelism(1);
+        JobGraph graph = JobGraphTestUtils.streamingJobGraph(blockingJobVertex);
+        graph.setJobID(jobId);
+
+        return Tuple2.of(graph, blockingJobVertex);
     }
 
     private static class FailingJobVertex extends JobVertex {

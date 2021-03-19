@@ -23,7 +23,6 @@ import org.apache.flink.runtime.io.network.partition.ResultPartitionType;
 import org.apache.flink.runtime.jobgraph.DistributionPattern;
 import org.apache.flink.runtime.jobgraph.IntermediateResultPartitionID;
 import org.apache.flink.runtime.jobgraph.JobVertex;
-import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.scheduler.strategy.ConsumedPartitionGroup;
 
 import org.junit.Test;
@@ -32,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -240,14 +240,8 @@ public class PointwisePatternTest {
 
     private ExecutionJobVertex setUpExecutionGraphAndGetDownstreamVertex(
             int upstream, int downstream) throws Exception {
-        JobVertex v1 = new JobVertex("vertex1");
-        JobVertex v2 = new JobVertex("vertex2");
-
-        v1.setParallelism(upstream);
-        v2.setParallelism(downstream);
-
-        v1.setInvokableClass(AbstractInvokable.class);
-        v2.setInvokableClass(AbstractInvokable.class);
+        JobVertex v1 = createNoOpVertex("vertex1", upstream);
+        JobVertex v2 = createNoOpVertex("vertex2", downstream);
 
         v2.connectNewDataSetAsInput(
                 v1, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);

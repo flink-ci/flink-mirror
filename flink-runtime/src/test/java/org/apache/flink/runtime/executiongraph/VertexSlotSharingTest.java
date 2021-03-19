@@ -21,7 +21,6 @@ package org.apache.flink.runtime.executiongraph;
 import org.apache.flink.runtime.io.network.partition.ResultPartitionType;
 import org.apache.flink.runtime.jobgraph.DistributionPattern;
 import org.apache.flink.runtime.jobgraph.JobVertex;
-import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.jobmanager.scheduler.SlotSharingGroup;
 
 import org.junit.Test;
@@ -30,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
@@ -46,23 +46,11 @@ public class VertexSlotSharingTest {
     @Test
     public void testAssignSlotSharingGroup() {
         try {
-            JobVertex v1 = new JobVertex("v1");
-            JobVertex v2 = new JobVertex("v2");
-            JobVertex v3 = new JobVertex("v3");
-            JobVertex v4 = new JobVertex("v4");
-            JobVertex v5 = new JobVertex("v5");
-
-            v1.setParallelism(4);
-            v2.setParallelism(5);
-            v3.setParallelism(7);
-            v4.setParallelism(1);
-            v5.setParallelism(11);
-
-            v1.setInvokableClass(AbstractInvokable.class);
-            v2.setInvokableClass(AbstractInvokable.class);
-            v3.setInvokableClass(AbstractInvokable.class);
-            v4.setInvokableClass(AbstractInvokable.class);
-            v5.setInvokableClass(AbstractInvokable.class);
+            JobVertex v1 = createNoOpVertex("v1", 4);
+            JobVertex v2 = createNoOpVertex("v2", 5);
+            JobVertex v3 = createNoOpVertex("v3", 7);
+            JobVertex v4 = createNoOpVertex("v4", 1);
+            JobVertex v5 = createNoOpVertex("v5", 11);
 
             v2.connectNewDataSetAsInput(
                     v1, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);

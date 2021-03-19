@@ -24,7 +24,6 @@ import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobGraphTestUtils;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
-import org.apache.flink.runtime.operators.testutils.DummyInvokable;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +33,7 @@ import org.junit.Test;
 
 import java.util.Iterator;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -44,21 +44,20 @@ public class JsonGeneratorTest {
     @Test
     public void testGeneratorWithoutAnyAttachements() {
         try {
-            JobVertex source1 = new JobVertex("source 1");
+            JobVertex source1 = createNoOpVertex("source 1", 1);
 
-            JobVertex source2 = new JobVertex("source 2");
-            source2.setInvokableClass(DummyInvokable.class);
+            JobVertex source2 = createNoOpVertex("source 2", 2);
 
-            JobVertex source3 = new JobVertex("source 3");
+            JobVertex source3 = createNoOpVertex("source 3", 1);
 
-            JobVertex intermediate1 = new JobVertex("intermediate 1");
-            JobVertex intermediate2 = new JobVertex("intermediate 2");
+            JobVertex intermediate1 = createNoOpVertex("intermediate 1", 1);
+            JobVertex intermediate2 = createNoOpVertex("intermediate 2", 1);
 
-            JobVertex join1 = new JobVertex("join 1");
-            JobVertex join2 = new JobVertex("join 2");
+            JobVertex join1 = createNoOpVertex("join 1", 1);
+            JobVertex join2 = createNoOpVertex("join 2", 1);
 
-            JobVertex sink1 = new JobVertex("sink 1");
-            JobVertex sink2 = new JobVertex("sink 2");
+            JobVertex sink1 = createNoOpVertex("sink 1", 1);
+            JobVertex sink2 = createNoOpVertex("sink 2", 1);
 
             intermediate1.connectNewDataSetAsInput(
                     source1, DistributionPattern.POINTWISE, ResultPartitionType.PIPELINED);

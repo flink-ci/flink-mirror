@@ -71,7 +71,6 @@ import org.apache.flink.runtime.jobgraph.JobGraphTestUtils;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobgraph.JobVertexID;
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
-import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
 import org.apache.flink.runtime.jobmanager.PartitionProducerDisposedException;
 import org.apache.flink.runtime.jobmanager.slots.TaskManagerGateway;
 import org.apache.flink.runtime.jobmaster.slotpool.PhysicalSlot;
@@ -104,7 +103,6 @@ import org.apache.flink.runtime.taskmanager.LocalUnresolvedTaskManagerLocation;
 import org.apache.flink.runtime.taskmanager.TaskExecutionState;
 import org.apache.flink.runtime.taskmanager.TaskManagerLocation;
 import org.apache.flink.runtime.taskmanager.UnresolvedTaskManagerLocation;
-import org.apache.flink.runtime.testtasks.NoOpInvokable;
 import org.apache.flink.runtime.testutils.CommonTestUtils;
 import org.apache.flink.runtime.util.TestingFatalErrorHandler;
 import org.apache.flink.testutils.junit.FailsWithAdaptiveScheduler;
@@ -155,6 +153,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.apache.flink.runtime.checkpoint.PerJobCheckpointRecoveryFactory.useSameServicesForAllJobs;
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -920,10 +919,8 @@ public class JobMasterTest extends TestLogger {
         final InputSplitSource<TestingInputSplit> inputSplitSource =
                 new TestingInputSplitSource(allInputSplits);
 
-        JobVertex source = new JobVertex("source");
-        source.setParallelism(parallelism);
+        JobVertex source = createNoOpVertex("source", parallelism);
         source.setInputSplitSource(inputSplitSource);
-        source.setInvokableClass(AbstractInvokable.class);
 
         final ExecutionConfig executionConfig = new ExecutionConfig();
         executionConfig.setRestartStrategy(RestartStrategies.fixedDelayRestart(100, 0));
@@ -1763,10 +1760,8 @@ public class JobMasterTest extends TestLogger {
     }
 
     private JobGraph producerConsumerJobGraph() {
-        final JobVertex producer = new JobVertex("Producer");
-        producer.setInvokableClass(NoOpInvokable.class);
-        final JobVertex consumer = new JobVertex("Consumer");
-        consumer.setInvokableClass(NoOpInvokable.class);
+        final JobVertex producer = createNoOpVertex("Producer", 1);
+        final JobVertex consumer = createNoOpVertex("Consumer", 1);
 
         consumer.connectNewDataSetAsInput(
                 producer, DistributionPattern.POINTWISE, ResultPartitionType.BLOCKING);
@@ -1781,8 +1776,7 @@ public class JobMasterTest extends TestLogger {
     @Nonnull
     private JobGraph createJobGraphWithCheckpointing(
             SavepointRestoreSettings savepointRestoreSettings) {
-        final JobVertex source = new JobVertex("source");
-        source.setInvokableClass(NoOpInvokable.class);
+        final JobVertex source = createNoOpVertex("source", 1);
 
         return TestUtils.createJobGraphFromJobVerticesWithCheckpointing(
                 savepointRestoreSettings, source);
