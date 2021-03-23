@@ -40,9 +40,14 @@ import org.apache.flink.runtime.shuffle.ShuffleMaster;
 import org.apache.flink.runtime.shuffle.ShuffleServiceLoader;
 import org.apache.flink.util.Preconditions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /** Singleton default factory for {@link JobManagerRunnerImpl}. */
 public enum DefaultJobManagerRunnerFactory implements JobManagerRunnerFactory {
     INSTANCE;
+
+    private static final Logger LOG = LoggerFactory.getLogger(JobManagerRunnerFactory.class);
 
     @Override
     public JobManagerRunner createJobManagerRunner(
@@ -64,15 +69,15 @@ public enum DefaultJobManagerRunnerFactory implements JobManagerRunnerFactory {
                 DefaultSlotPoolServiceSchedulerFactory.fromConfiguration(
                         configuration, jobGraph.getJobType());
 
+        JobGraphConfigurationUtils.autoConfigureMaxParallelism(jobGraph);
         if (jobMasterConfiguration.getConfiguration().get(JobManagerOptions.SCHEDULER_MODE)
                 == SchedulerExecutionMode.REACTIVE) {
+            LOG.info("Configuring job parallelism for running in reactive mode.");
             Preconditions.checkState(
                     slotPoolServiceSchedulerFactory.getSchedulerType()
                             == JobManagerOptions.SchedulerType.Adaptive,
                     "Adaptive Scheduler is required for reactive mode");
             JobGraphConfigurationUtils.configureJobGraphForReactiveMode(jobGraph);
-        } else {
-            JobGraphConfigurationUtils.configureJobGraphForDefaultMode(jobGraph);
         }
 
         final ShuffleMaster<?> shuffleMaster =

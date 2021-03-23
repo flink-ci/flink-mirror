@@ -60,7 +60,7 @@ public class JobGraphConfigurationUtilsAutoConfigurtionTest {
     public void testMaxParallelismDefaulting() {
         JobVertex jobVertex = createJobVertex(parallelism, maxParallelism);
         JobGraph jobGraph = streamingJobGraph(jobVertex);
-        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(jobGraph);
+        JobGraphConfigurationUtils.autoConfigureMaxParallelism(jobGraph);
         Assert.assertEquals(expectedMaxParallelism, jobVertex.getMaxParallelism());
     }
 

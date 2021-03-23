@@ -21,20 +21,14 @@ package org.apache.flink.runtime.jobgraph;
 import org.apache.flink.configuration.SchedulerExecutionMode;
 import org.apache.flink.runtime.state.KeyGroupRangeAssignment;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /** Utilities for configuring {@link JobGraph JobGraphs} before their execution. */
 public final class JobGraphConfigurationUtils {
-    private static final Logger LOG = LoggerFactory.getLogger(JobGraphConfigurationUtils.class);
-
     /**
      * Configures a {@link JobGraph} for the reactive {@link SchedulerExecutionMode}.
      *
      * @param jobGraph The JobGraph.
      */
     public static void configureJobGraphForReactiveMode(JobGraph jobGraph) {
-        LOG.info("Modifying job parallelism for running in reactive mode.");
         for (JobVertex vertex : jobGraph.getVertices()) {
             if (vertex.getMaxParallelism() == JobVertex.MAX_PARALLELISM_DEFAULT) {
                 autoConfigureDefaultParallelism(vertex);
@@ -49,8 +43,7 @@ public final class JobGraphConfigurationUtils {
      *
      * @param jobGraph The JobGraph.
      */
-    public static void configureJobGraphForDefaultMode(JobGraph jobGraph) {
-        LOG.info("Modifying job parallelism for running in default mode.");
+    public static void autoConfigureMaxParallelism(JobGraph jobGraph) {
         for (JobVertex vertex : jobGraph.getVertices()) {
             // if no max parallelism was configured by the user, we calculate and set a default
             if (vertex.getMaxParallelism() == JobVertex.MAX_PARALLELISM_DEFAULT) {

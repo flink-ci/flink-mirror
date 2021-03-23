@@ -42,7 +42,7 @@ public class JobGraphTestUtils {
                 JobGraphBuilder.newStreamingJobGraphBuilder()
                         .addJobVertices(Arrays.asList(jobVertices))
                         .build();
-        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(graph);
+        JobGraphConfigurationUtils.autoConfigureMaxParallelism(graph);
         return graph;
     }
 
@@ -51,7 +51,7 @@ public class JobGraphTestUtils {
                 JobGraphBuilder.newBatchJobGraphBuilder()
                         .addJobVertices(Arrays.asList(jobVertices))
                         .build();
-        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(graph);
+        JobGraphConfigurationUtils.autoConfigureMaxParallelism(graph);
         return graph;
     }
 

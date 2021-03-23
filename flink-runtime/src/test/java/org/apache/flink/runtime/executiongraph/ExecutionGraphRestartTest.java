@@ -373,7 +373,7 @@ public class ExecutionGraphRestartTest extends TestLogger {
                         .addJobVertex(vertex)
                         .setExecutionConfig(executionConfig)
                         .build();
-        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(graph);
+        JobGraphConfigurationUtils.autoConfigureMaxParallelism(graph);
         return graph;
     }
 }

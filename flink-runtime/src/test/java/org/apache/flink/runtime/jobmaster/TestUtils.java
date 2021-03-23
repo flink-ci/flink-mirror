@@ -117,7 +117,7 @@ public class TestUtils {
                         .setSavepointRestoreSettings(savepointRestoreSettings)
                         .build();
 
-        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(graph);
+        JobGraphConfigurationUtils.autoConfigureMaxParallelism(graph);
         return graph;
     }
 
