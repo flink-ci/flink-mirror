@@ -30,7 +30,7 @@ import org.apache.flink.runtime.checkpoint.OperatorSubtaskState;
 import org.apache.flink.runtime.checkpoint.TaskStateSnapshot;
 import org.apache.flink.runtime.execution.Environment;
 import org.apache.flink.runtime.jobgraph.JobGraph;
-import org.apache.flink.runtime.jobgraph.JobGraphBuilder;
+import org.apache.flink.runtime.jobgraph.JobGraphTestUtils;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobgraph.OperatorID;
 import org.apache.flink.runtime.jobgraph.tasks.AbstractInvokable;
@@ -58,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -93,7 +94,7 @@ public class JobMasterTriggerSavepointITCase extends AbstractTestBase {
 
         clusterClient = (MiniClusterClient) miniClusterResource.getClusterClient();
 
-        final JobVertex vertex = new JobVertex("testVertex");
+        final JobVertex vertex = createNoOpVertex("testVertex", 1);
         vertex.setInvokableClass(NoOpBlockingInvokable.class);
 
         final JobCheckpointingSettings jobCheckpointingSettings =
@@ -110,11 +111,8 @@ public class JobMasterTriggerSavepointITCase extends AbstractTestBase {
                                 0),
                         null);
 
-        jobGraph =
-                JobGraphBuilder.newStreamingJobGraphBuilder()
-                        .addJobVertex(vertex)
-                        .setJobCheckpointingSettings(jobCheckpointingSettings)
-                        .build();
+        jobGraph = JobGraphTestUtils.streamingJobGraph(vertex);
+        jobGraph.setSnapshotSettings(jobCheckpointingSettings);
 
         clusterClient.submitJob(jobGraph).get();
         assertTrue(invokeLatch.await(60, TimeUnit.SECONDS));

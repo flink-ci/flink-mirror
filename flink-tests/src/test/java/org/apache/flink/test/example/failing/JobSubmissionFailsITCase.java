@@ -79,6 +79,7 @@ public class JobSubmissionFailsITCase extends TestLogger {
     @Test
     public void testExceptionInInitializeOnMaster() throws Exception {
         final JobVertex failingJobVertex = new FailingJobVertex("Failing job vertex");
+        failingJobVertex.setParallelism(1);
         failingJobVertex.setInvokableClass(NoOpInvokable.class);
 
         final JobGraph failingJobGraph = JobGraphTestUtils.streamingJobGraph(failingJobVertex);

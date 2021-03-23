@@ -43,6 +43,7 @@ import org.junit.Test;
 import java.util.Optional;
 import java.util.concurrent.Semaphore;
 
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
@@ -80,7 +81,7 @@ public class JobRetrievalITCase extends TestLogger {
 
     @Test
     public void testJobRetrieval() throws Exception {
-        final JobVertex imalock = new JobVertex("imalock");
+        final JobVertex imalock = createNoOpVertex("imalock", 1);
         imalock.setInvokableClass(SemaphoreInvokable.class);
 
         final JobGraph jobGraph = JobGraphTestUtils.streamingJobGraph(imalock);

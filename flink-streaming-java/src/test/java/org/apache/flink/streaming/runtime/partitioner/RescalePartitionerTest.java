@@ -20,7 +20,6 @@ package org.apache.flink.streaming.runtime.partitioner;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.runtime.JobException;
 import org.apache.flink.runtime.executiongraph.ExecutionGraph;
 import org.apache.flink.runtime.executiongraph.ExecutionJobVertex;
 import org.apache.flink.runtime.executiongraph.ExecutionVertex;
@@ -29,6 +28,7 @@ import org.apache.flink.runtime.executiongraph.InternalExecutionGraphAccessor;
 import org.apache.flink.runtime.executiongraph.TestingDefaultExecutionGraphBuilder;
 import org.apache.flink.runtime.jobgraph.IntermediateResultPartitionID;
 import org.apache.flink.runtime.jobgraph.JobGraph;
+import org.apache.flink.runtime.jobgraph.JobGraphConfigurationUtils;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -45,7 +45,6 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 
 /** Tests for {@link RescalePartitioner}. */
 @SuppressWarnings("serial")
@@ -105,6 +104,7 @@ public class RescalePartitionerTest extends StreamPartitionerTest {
         counts.rescale().print().setParallelism(2);
 
         JobGraph jobGraph = env.getStreamGraph().getJobGraph();
+        JobGraphConfigurationUtils.configureJobGraphForDefaultMode(jobGraph);
 
         List<JobVertex> jobVertices = jobGraph.getVerticesSortedTopologicallyFromSources();
 
@@ -117,13 +117,7 @@ public class RescalePartitionerTest extends StreamPartitionerTest {
         assertEquals(2, sinkVertex.getParallelism());
 
         ExecutionGraph eg = TestingDefaultExecutionGraphBuilder.newBuilder().build();
-
-        try {
-            eg.attachJobGraph(jobVertices);
-        } catch (JobException e) {
-            e.printStackTrace();
-            fail("Building ExecutionGraph failed: " + e.getMessage());
-        }
+        eg.attachJobGraph(jobVertices);
 
         ExecutionJobVertex execSourceVertex = eg.getJobVertex(sourceVertex.getID());
         ExecutionJobVertex execMapVertex = eg.getJobVertex(mapVertex.getID());
