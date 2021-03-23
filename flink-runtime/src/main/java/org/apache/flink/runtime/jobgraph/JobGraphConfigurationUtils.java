@@ -31,7 +31,7 @@ public final class JobGraphConfigurationUtils {
     public static void configureJobGraphForReactiveMode(JobGraph jobGraph) {
         for (JobVertex vertex : jobGraph.getVertices()) {
             if (vertex.getMaxParallelism() == JobVertex.MAX_PARALLELISM_DEFAULT) {
-                autoConfigureDefaultParallelism(vertex);
+                autoConfigureMaxParallelism(vertex);
             }
 
             vertex.setParallelism(vertex.getMaxParallelism());
@@ -47,7 +47,7 @@ public final class JobGraphConfigurationUtils {
         for (JobVertex vertex : jobGraph.getVertices()) {
             // if no max parallelism was configured by the user, we calculate and set a default
             if (vertex.getMaxParallelism() == JobVertex.MAX_PARALLELISM_DEFAULT) {
-                autoConfigureDefaultParallelism(vertex);
+                autoConfigureMaxParallelism(vertex);
             }
         }
     }
@@ -57,7 +57,7 @@ public final class JobGraphConfigurationUtils {
      *
      * @param vertex The JobVertex.
      */
-    private static void autoConfigureDefaultParallelism(JobVertex vertex) {
+    private static void autoConfigureMaxParallelism(JobVertex vertex) {
         int defaultMax =
                 KeyGroupRangeAssignment.computeDefaultMaxParallelism(vertex.getParallelism());
         vertex.setAutoConfiguredMaxParallelism(defaultMax);
