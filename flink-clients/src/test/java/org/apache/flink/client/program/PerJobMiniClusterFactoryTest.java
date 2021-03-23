@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import static org.apache.flink.core.testutils.CommonTestUtils.assertThrows;
+import static org.apache.flink.runtime.executiongraph.ExecutionGraphTestUtils.createNoOpVertex;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -185,7 +186,7 @@ public class PerJobMiniClusterFactoryTest extends TestLogger {
     }
 
     private static JobGraph getCancellableJobGraph() {
-        JobVertex jobVertex = new JobVertex("jobVertex");
+        JobVertex jobVertex = createNoOpVertex("jobVertex", 1);
         jobVertex.setInvokableClass(MyCancellableInvokable.class);
         return JobGraphTestUtils.streamingJobGraph(jobVertex);
     }
