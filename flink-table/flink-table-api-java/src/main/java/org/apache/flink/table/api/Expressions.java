@@ -341,6 +341,23 @@ public final class Expressions {
     }
 
     /**
+     * Creates a map from array of keys and array of values.
+     *
+     * <pre>{@code
+     * table.select(
+     *     mapFromArrays(
+     *         array("key1", "key2", "key3"),
+     *         array(1, 2, 3)
+     *     ))
+     * }</pre>
+     *
+     * <p>Note both arrays should have the same length.
+     */
+    public static ApiExpression mapFromArrays(Object key, Object value) {
+        return apiCallExactlyTwoArgument(BuiltInFunctionDefinitions.MAP_FROM_ARRAYS, key, value);
+    }
+
+    /**
      * Creates an interval of rows.
      *
      * @see Table#window(GroupWindow)
@@ -598,6 +615,15 @@ public final class Expressions {
             FunctionDefinition functionDefinition, Object arg0, Object arg1, Object... args) {
         List<Expression> arguments =
                 Stream.concat(Stream.of(arg0, arg1), Stream.of(args))
+                        .map(ApiExpressionUtils::objectToExpression)
+                        .collect(Collectors.toList());
+        return new ApiExpression(unresolvedCall(functionDefinition, arguments));
+    }
+
+    private static ApiExpression apiCallExactlyTwoArgument(
+            FunctionDefinition functionDefinition, Object arg0, Object arg1) {
+        List<Expression> arguments =
+                Stream.of(arg0, arg1)
                         .map(ApiExpressionUtils::objectToExpression)
                         .collect(Collectors.toList());
         return new ApiExpression(unresolvedCall(functionDefinition, arguments));
