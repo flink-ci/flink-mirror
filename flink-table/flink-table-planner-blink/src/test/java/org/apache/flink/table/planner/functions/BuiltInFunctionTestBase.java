@@ -126,7 +126,7 @@ public abstract class BuiltInFunctionTestBase {
 
     private static void testTableApiError(Table inputTable, TableApiErrorTestItem testItem) {
         try {
-            // hasNext leads to call of eval which potentially could have runtime checks
+            // we are calling hasNext here to trigger runtime exceptions
             inputTable.select(testItem.expression).execute().collect().hasNext();
             fail("Error expected: " + testItem.errorMessage);
         } catch (Throwable t) {
@@ -148,7 +148,7 @@ public abstract class BuiltInFunctionTestBase {
     private static void testSqlError(
             TableEnvironment env, Table inputTable, SqlErrorTestItem testItem) {
         try {
-            // hasNext leads to call of eval which potentially could have runtime checks
+            // we are calling hasNext here to trigger runtime exceptions
             env.sqlQuery("SELECT " + testItem.expression + " FROM " + inputTable)
                     .execute()
                     .collect()

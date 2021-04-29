@@ -34,7 +34,7 @@ public class MapFromArraysFunction extends BuiltInScalarFunction {
         super(BuiltInFunctionDefinitions.MAP_FROM_ARRAYS, context);
     }
 
-    public @Nullable MapData eval(ArrayData keysArray, ArrayData valuesArray) {
+    public @Nullable MapData eval(@Nullable ArrayData keysArray, @Nullable ArrayData valuesArray) {
         // we rely on the casting functionality via input type strategy
         // to determine the common data type
         if (keysArray == null || valuesArray == null) {
@@ -49,21 +49,31 @@ public class MapFromArraysFunction extends BuiltInScalarFunction {
                             + " is not equal to the length of the values array "
                             + valuesArray.size());
         }
-        return new MapData() {
-            @Override
-            public int size() {
-                return keysArray.size();
-            }
+        return new MapDataForMapFromArrays(keysArray, valuesArray);
+    }
 
-            @Override
-            public ArrayData keyArray() {
-                return keysArray;
-            }
+    static class MapDataForMapFromArrays implements MapData {
+        private final ArrayData keyArray;
+        private final ArrayData valueArray;
 
-            @Override
-            public ArrayData valueArray() {
-                return valuesArray;
-            }
-        };
+        public MapDataForMapFromArrays(ArrayData keyArray, ArrayData valueArray) {
+            this.keyArray = keyArray;
+            this.valueArray = valueArray;
+        }
+
+        @Override
+        public int size() {
+            return keyArray.size();
+        }
+
+        @Override
+        public ArrayData keyArray() {
+            return keyArray;
+        }
+
+        @Override
+        public ArrayData valueArray() {
+            return valueArray;
+        }
     }
 }

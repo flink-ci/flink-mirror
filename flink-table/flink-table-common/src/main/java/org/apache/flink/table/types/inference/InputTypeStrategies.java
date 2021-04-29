@@ -32,7 +32,6 @@ import org.apache.flink.table.types.inference.strategies.ConstraintArgumentTypeS
 import org.apache.flink.table.types.inference.strategies.ExplicitArgumentTypeStrategy;
 import org.apache.flink.table.types.inference.strategies.FamilyArgumentTypeStrategy;
 import org.apache.flink.table.types.inference.strategies.LiteralArgumentTypeStrategy;
-import org.apache.flink.table.types.inference.strategies.MapFromArraysInputTypeStrategy;
 import org.apache.flink.table.types.inference.strategies.MapInputTypeStrategy;
 import org.apache.flink.table.types.inference.strategies.OrArgumentTypeStrategy;
 import org.apache.flink.table.types.inference.strategies.OrInputTypeStrategy;
@@ -325,13 +324,6 @@ public final class InputTypeStrategies {
      */
     public static final InputTypeStrategy SPECIFIC_FOR_MAP = new MapInputTypeStrategy();
 
-    /**
-     * Strategy specific for {@link BuiltInFunctionDefinitions#MAP_FROM_ARRAYS}.
-     *
-     * <p>It expects exactly two array arguments. The length of input arrays must be the same.
-     */
-    public static final InputTypeStrategy SPECIFIC_FOR_MAP_FROM_ARRAYS =
-            new MapFromArraysInputTypeStrategy();
     /**
      * Strategy that checks all types are fully comparable with each other. Requires exactly two
      * arguments.

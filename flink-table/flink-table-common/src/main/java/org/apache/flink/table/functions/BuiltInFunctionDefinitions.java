@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.apache.flink.table.functions.FunctionKind.AGGREGATE;
@@ -48,7 +47,6 @@ import static org.apache.flink.table.types.inference.InputTypeStrategies.LITERAL
 import static org.apache.flink.table.types.inference.InputTypeStrategies.NO_ARGS;
 import static org.apache.flink.table.types.inference.InputTypeStrategies.OUTPUT_IF_NULL;
 import static org.apache.flink.table.types.inference.InputTypeStrategies.SPECIFIC_FOR_CAST;
-import static org.apache.flink.table.types.inference.InputTypeStrategies.SPECIFIC_FOR_MAP_FROM_ARRAYS;
 import static org.apache.flink.table.types.inference.InputTypeStrategies.TWO_EQUALS_COMPARABLE;
 import static org.apache.flink.table.types.inference.InputTypeStrategies.TWO_FULLY_COMPARABLE;
 import static org.apache.flink.table.types.inference.InputTypeStrategies.and;
@@ -122,15 +120,7 @@ public final class BuiltInFunctionDefinitions {
                             sequence(
                                     new String[] {"input"},
                                     new ArgumentTypeStrategy[] {logical(LogicalTypeRoot.MAP)}))
-                    .outputTypeStrategy(
-                            callContext ->
-                                    Optional.of(
-                                            DataTypes.ARRAY(
-                                                    callContext
-                                                            .getArgumentDataTypes()
-                                                            .get(0)
-                                                            .getChildren()
-                                                            .get(0))))
+                    .outputTypeStrategy(nullable(TypeStrategies.SPECIFIC_FOR_MAP_KEYS))
                     .runtimeClass("org.apache.flink.table.runtime.functions.scalar.MapKeysFunction")
                     .build();
 
@@ -142,15 +132,7 @@ public final class BuiltInFunctionDefinitions {
                             sequence(
                                     new String[] {"input"},
                                     new ArgumentTypeStrategy[] {logical(LogicalTypeRoot.MAP)}))
-                    .outputTypeStrategy(
-                            callContext ->
-                                    Optional.of(
-                                            DataTypes.ARRAY(
-                                                    callContext
-                                                            .getArgumentDataTypes()
-                                                            .get(0)
-                                                            .getChildren()
-                                                            .get(1))))
+                    .outputTypeStrategy(nullable(TypeStrategies.SPECIFIC_FOR_MAP_VALUES))
                     .runtimeClass(
                             "org.apache.flink.table.runtime.functions.scalar.MapValuesFunction")
                     .build();
@@ -159,21 +141,14 @@ public final class BuiltInFunctionDefinitions {
             BuiltInFunctionDefinition.newBuilder()
                     .name("MAP_FROM_ARRAYS")
                     .kind(SCALAR)
-                    .inputTypeStrategy(SPECIFIC_FOR_MAP_FROM_ARRAYS)
-                    .outputTypeStrategy(
-                            callContext ->
-                                    Optional.of(
-                                            DataTypes.MAP(
-                                                    callContext
-                                                            .getArgumentDataTypes()
-                                                            .get(0)
-                                                            .getChildren()
-                                                            .get(0),
-                                                    callContext
-                                                            .getArgumentDataTypes()
-                                                            .get(1)
-                                                            .getChildren()
-                                                            .get(0))))
+                    .inputTypeStrategy(
+                            sequence(
+                                    new String[] {"keysArray", "valuesArray"},
+                                    new ArgumentTypeStrategy[] {
+                                        logical(LogicalTypeRoot.ARRAY),
+                                        logical(LogicalTypeRoot.ARRAY)
+                                    }))
+                    .outputTypeStrategy(nullable(TypeStrategies.SPECIFIC_FOR_MAP_FROM_ARRAYS))
                     .runtimeClass(
                             "org.apache.flink.table.runtime.functions.scalar.MapFromArraysFunction")
                     .build();
