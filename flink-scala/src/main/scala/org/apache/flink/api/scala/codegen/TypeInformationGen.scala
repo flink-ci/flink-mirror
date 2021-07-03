@@ -18,12 +18,12 @@
 package org.apache.flink.api.scala.codegen
 
 import java.lang.reflect.{Field, Modifier}
-
 import org.apache.flink.annotation.Internal
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo._
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.api.java.typeutils._
+import org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer
 import org.apache.flink.api.scala.typeutils._
 import org.apache.flink.types.Value
 
@@ -138,24 +138,7 @@ private[flink] trait TypeInformationGen[C <: Context] {
         fieldNamesExpr.splice) {
 
         override def createSerializer(executionConfig: ExecutionConfig): TypeSerializer[T] = {
-          val fieldSerializers: Array[TypeSerializer[_]] = new Array[TypeSerializer[_]](getArity)
-          for (i <- 0 until getArity) {
-            fieldSerializers(i) = types(i).createSerializer(executionConfig)
-          }
-          // -------------------------------------------------------------------------------------
-          // NOTE:
-          // the following anonymous class is needed here, and should not be removed
-          // (although appears to be unused) since it is required for backwards compatibility
-          // with Flink versions pre 1.8, that were using Java deserialization.
-          // -------------------------------------------------------------------------------------
-          val unused = new ScalaCaseClassSerializer[T](getTypeClass(), fieldSerializers) {
-
-            override def createInstance(fields: Array[AnyRef]): T = {
-              instance.splice
-            }
-          }
-
-          new ScalaCaseClassSerializer[T](getTypeClass, fieldSerializers)
+          new KryoSerializer[T](getTypeClass, executionConfig)
         }
       }
     }
