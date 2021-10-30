@@ -34,6 +34,7 @@ import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -57,6 +58,7 @@ import static org.junit.Assume.assumeNoException;
  * <p>Note that the setup is similar to
  * <tt>org.apache.flink.fs.s3hadoop.HadoopS3FileSystemITCase</tt>.
  */
+@Ignore
 public class YarnFileStageTestS3ITCase extends TestLogger {
 
     private static final String TEST_DATA_DIR = "tests-" + UUID.randomUUID();
