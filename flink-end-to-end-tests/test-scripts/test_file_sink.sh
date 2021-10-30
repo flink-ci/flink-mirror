@@ -143,9 +143,6 @@ function run_file_sink_test {
   "${FLINK_DIR}/bin/taskmanager.sh" start
   "${FLINK_DIR}/bin/taskmanager.sh" start
 
-  echo "Print the actual Flink config"
-  cat "$FLINK_DIR/conf/flink-conf.yaml"
-
   echo "Submitting job."
   CLIENT_OUTPUT=$("$FLINK_DIR/bin/flink" run -d "${TEST_PROGRAM_JAR}" --outputPath "${JOB_OUTPUT_PATH}" \
     --sinkToTest "${SINK_TO_TEST}")
