@@ -27,6 +27,7 @@ import org.apache.flink.testutils.s3.S3TestCredentials;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -34,6 +35,7 @@ import java.util.UUID;
 /**
  * An implementation of the {@link FileSystemBehaviorTestSuite} for the s3a-based S3 file system.
  */
+@Ignore
 public class PrestoS3FileSystemBehaviorITCase extends FileSystemBehaviorTestSuite {
 
     private static final String TEST_DATA_DIR = "tests-" + UUID.randomUUID();

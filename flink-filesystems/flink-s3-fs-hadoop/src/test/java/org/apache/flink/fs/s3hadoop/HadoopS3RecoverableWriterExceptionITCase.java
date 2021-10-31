@@ -34,6 +34,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -51,6 +52,7 @@ import static org.apache.flink.fs.s3.common.AbstractS3FileSystemFactory.PART_UPL
  * Tests for exception throwing in the {@link
  * org.apache.flink.fs.s3.common.writer.S3RecoverableWriter S3RecoverableWriter}.
  */
+@Ignore
 public class HadoopS3RecoverableWriterExceptionITCase extends TestLogger {
 
     // ----------------------- S3 general configuration -----------------------

@@ -25,6 +25,7 @@ import org.apache.flink.runtime.fs.hdfs.AbstractHadoopFileSystemITTest;
 import org.apache.flink.testutils.s3.S3TestCredentials;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -39,6 +40,7 @@ import static org.junit.Assert.assertFalse;
  * href="https://docs.aws.amazon.com/AmazonS3/latest/dev/Introduction.html#ConsistencyModel">consistency
  * guarantees</a> and what the {@link org.apache.hadoop.fs.s3a.S3AFileSystem} offers.
  */
+@Ignore
 public class HadoopS3FileSystemITCase extends AbstractHadoopFileSystemITTest {
 
     @BeforeClass

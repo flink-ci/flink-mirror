@@ -26,6 +26,7 @@ import org.apache.flink.testutils.s3.S3TestCredentials;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ import static org.apache.flink.fs.s3.common.AbstractS3FileSystemFactory.MAX_CONC
 import static org.apache.flink.fs.s3.common.AbstractS3FileSystemFactory.PART_UPLOAD_MIN_SIZE;
 
 /** Tests for the {@link org.apache.flink.core.fs.RecoverableWriter} of the Presto S3 FS. */
+@Ignore
 public class PrestoS3RecoverableWriterTest {
 
     // ----------------------- S3 general configuration -----------------------

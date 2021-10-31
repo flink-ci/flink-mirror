@@ -26,6 +26,7 @@ import org.apache.flink.testutils.s3.S3TestCredentials;
 
 import com.amazonaws.SdkClientException;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -48,6 +49,7 @@ import static org.junit.Assert.fail;
  * guarantees</a> and what the {@link com.facebook.presto.hive.s3.PrestoS3FileSystem} offers.
  */
 @RunWith(Parameterized.class)
+@Ignore
 public class PrestoS3FileSystemITCase extends AbstractHadoopFileSystemITTest {
 
     @Parameterized.Parameter public String scheme;
