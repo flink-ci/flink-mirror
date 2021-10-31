@@ -50,6 +50,7 @@ under the License.
 
 	<modules>
 		<module>flink-cli-test</module>
+		<module>flink-yarn-no-fatjar-test-parent</module>
 		<module>flink-parent-child-classloading-test-program</module>
 		<module>flink-parent-child-classloading-test-lib-package</module>
 		<module>flink-dataset-allround-test</module>
