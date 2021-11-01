@@ -31,7 +31,7 @@ then
 fi
 APP_DISTR_FILE="$(basename $APP_DISTR_PATH)"
 docker cp "$APP_DISTR_PATH" master:/home/hadoop-user/
-docker exec master bash -c "tar xzf /home/hadoop-user/$APP_DISTR_FILE -C /home/hadoop-user"
+docker exec master bash -c "tar xzf /home/hadoop-user/$APP_DISTR_FILE --directory /home/hadoop-user"
 APP_HOME_DIR="/home/hadoop-user/flink-yarn-no-fatjar"
 # TODO Remove debug
 docker exec master bash -c "ls -l $APP_HOME_DIR"
@@ -41,12 +41,12 @@ docker exec master bash -c "ls -l $APP_HOME_DIR"
 OUTPUT_PATH="hdfs:///user/hadoop-user/wc-out-$RANDOM"
 
 # Generate the application configuration
-cat <<END_CONF > "$APP_HOME_DIR/lib/app-conf.sh"
-HADOOP_CLASSPATH="$(hadoop classpath)"
+docker exec master bash -c "cat <<END_CONF > \"$APP_HOME_DIR/lib/app-conf.sh\"
+HADOOP_CLASSPATH=\"\\\$(hadoop classpath)\"
 export HADOOP_CLASSPATH
-export FLINK_HOME_DIR="/home/hadoop-user/$FLINK_DIRNAME"
-export OUTPUT_LOCATION="$OUTPUT_PATH"
-END_CONF
+export FLINK_HOME_DIR=\"/home/hadoop-user/$FLINK_DIRNAME\"
+export OUTPUT_LOCATION=\"$OUTPUT_PATH\"
+END_CONF"
 # TODO Remove debug
 docker exec master bash -c "cat $APP_HOME_DIR/lib/app-conf.sh"
 
