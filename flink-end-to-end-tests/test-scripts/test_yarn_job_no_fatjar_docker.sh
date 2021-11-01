@@ -22,6 +22,18 @@ source "$(dirname "$0")"/common_yarn_docker.sh
 
 start_hadoop_cluster_and_prepare_flink
 
+# Configure Flink
+docker exec master bash -c "cat <<END_CONF >> \"/home/hadoop-user/$FLINK_DIRNAME/conf/flink-conf.yaml\"
+taskmanager.numberOfTaskSlots: 1
+parallelism.default: 3
+jobmanager.memory.process.size: 1g
+taskmanager.memory.process.size: 1g
+restart-strategy: none
+yarn.application-attempts: 1
+END_CONF"
+echo "Flink config after configuring:"
+docker exec master bash -c "cat /home/hadoop-user/$FLINK_DIRNAME/conf/flink-conf.yaml"
+
 # Install the application distribution to the cluster
 APP_DISTR_PATH="$(ls "$END_TO_END_DIR"/flink-yarn-no-fatjar-test-parent/flink-yarn-no-fatjar-test/target/*.tar.gz)"
 if [[ ! -f $APP_DISTR_PATH ]]
