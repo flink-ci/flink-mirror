@@ -31,7 +31,7 @@ then
 fi
 APP_DISTR_FILE="$(basename $APP_DISTR_PATH)"
 docker cp "$APP_DISTR_PATH" master:/home/hadoop-user/
-docker exec master bash -c "tar xzf /home/hadoop-user/$APP_DISTR_FILE"
+docker exec master bash -c "tar xzf /home/hadoop-user/$APP_DISTR_FILE -C /home/hadoop-user"
 APP_HOME_DIR="/home/hadoop-user/flink-yarn-no-fatjar"
 # TODO Remove debug
 docker exec master bash -c "ls -l $APP_HOME_DIR"
@@ -60,3 +60,10 @@ else
 fi
 
 # TODO Checks on the output vs expected output
+
+# TODO Remove vars
+# END_TO_END_DIR=/home/vsts/work/1/s/flink-end-to-end-tests
+# TEST_DATA_DIR=/home/vsts/work/1/s/flink-end-to-end-tests/test-scripts/temp-test-directory-10101014562
+# FLINK_DIR=/home/vsts/work/1/s/flink-dist/target/flink-1.15-SNAPSHOT-bin/flink-1.15-SNAPSHOT
+# FLINK_DIRNAME=flink-1.15-SNAPSHOT
+# FLINK_TARBALL=flink.tar.gz
