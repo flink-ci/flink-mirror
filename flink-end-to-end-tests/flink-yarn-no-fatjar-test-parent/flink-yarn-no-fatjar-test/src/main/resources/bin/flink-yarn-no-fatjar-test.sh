@@ -51,3 +51,10 @@ echo "$FLINK_HOME_DIR/bin/flink" \
   -Dyarn.ship-files="$yarn_jars" \
   "$app_jar" \
   --output "$OUTPUT_LOCATION"
+"$FLINK_HOME_DIR/bin/flink" \
+  run \
+  --target yarn-per-job \
+  --class "$app_main_class" \
+  -Dyarn.ship-files="$yarn_jars" \
+  "$app_jar" \
+  --output "$OUTPUT_LOCATION"
