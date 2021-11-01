@@ -41,14 +41,14 @@ docker exec master bash -c "ls -l $APP_HOME_DIR"
 OUTPUT_PATH="hdfs:///user/hadoop-user/wc-out-$RANDOM"
 
 # Generate the application configuration
-docker exec master bash -c "cat <<END_CONF > \"$APP_HOME_DIR/lib/app-conf.sh\"
+docker exec master bash -c "cat <<END_CONF > \"$APP_HOME_DIR/conf/app-conf.sh\"
 HADOOP_CLASSPATH=\"\\\$(hadoop classpath)\"
 export HADOOP_CLASSPATH
 export FLINK_HOME_DIR=\"/home/hadoop-user/$FLINK_DIRNAME\"
 export OUTPUT_LOCATION=\"$OUTPUT_PATH\"
 END_CONF"
 # TODO Remove debug
-docker exec master bash -c "cat $APP_HOME_DIR/lib/app-conf.sh"
+docker exec master bash -c "cat $APP_HOME_DIR/conf/app-conf.sh"
 
 if docker exec master bash -c "$APP_HOME_DIR/bin/flink-yarn-no-fatjar-test.sh"
 then
