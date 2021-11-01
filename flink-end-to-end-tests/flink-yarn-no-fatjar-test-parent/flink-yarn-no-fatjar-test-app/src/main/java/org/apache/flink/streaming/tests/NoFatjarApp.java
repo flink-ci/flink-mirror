@@ -68,4 +68,6 @@ public class NoFatjarApp {
         output.addSink(sink).setParallelism(1);
         env.execute(NoFatjarApp.class.getSimpleName());
     }
+
+    /* TODO Remove */
 }
