@@ -30,7 +30,7 @@ source "$conf_dir/app-conf.sh"
 
 app_main_class="org.apache.flink.streaming.tests.NoFatjarApp"
 
-app_jar_name="flink-yarn-no-fatjar-app-@{project.version}.jar"
+app_jar_name="flink-yarn-no-fatjar-test-app-@{project.version}.jar"
 app_jar="$lib_dir/$app_jar_name"
 
 jars=$(find "$lib_dir" -type f -name \*.jar | grep -v "$app_jar_name")
