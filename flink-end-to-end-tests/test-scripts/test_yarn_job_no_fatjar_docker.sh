@@ -50,7 +50,7 @@ END_CONF"
 # TODO Remove debug
 docker exec master bash -c "cat $APP_HOME_DIR/lib/app-conf.sh"
 
-if docker exec master bash -c "$APP_HOME_DIR/bin/flink-jar-no-fatjar-test.sh"
+if docker exec master bash -c "$APP_HOME_DIR/bin/flink-yarn-no-fatjar-test.sh"
 then
     OUTPUT=$(get_output "$OUTPUT_PATH/*")
     echo "$OUTPUT"
