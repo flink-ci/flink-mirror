@@ -25,7 +25,7 @@ start_hadoop_cluster_and_prepare_flink
 # Configure Flink
 docker exec master bash -c "cat <<END_CONF >> \"/home/hadoop-user/$FLINK_DIRNAME/conf/flink-conf.yaml\"
 taskmanager.numberOfTaskSlots: 1
-parallelism.default: 3
+parallelism.default: 2
 jobmanager.memory.process.size: 1g
 taskmanager.memory.process.size: 1g
 restart-strategy: none
