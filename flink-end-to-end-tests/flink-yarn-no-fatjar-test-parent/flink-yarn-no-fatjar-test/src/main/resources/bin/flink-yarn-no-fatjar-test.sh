@@ -45,8 +45,8 @@ echo $FLINK_CLIENT_ADD_CLASSPATH
 
 # TODO Remove debug
 echo "$FLINK_HOME_DIR/bin/flink" \
-  run \
-  --target yarn-per-job \
+  run-application \
+  --target yarn-application \
   --class "$app_main_class" \
   -Dyarn.ship-files="$yarn_jars" \
   "$app_jar" \
