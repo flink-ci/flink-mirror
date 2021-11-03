@@ -17,10 +17,27 @@
 # limitations under the License.
 ################################################################################
 
+# shellcheck source=common.sh
 source "$(dirname "$0")"/common.sh
+
+# shellcheck source=common_yarn_docker.sh
 source "$(dirname "$0")"/common_yarn_docker.sh
 
 start_hadoop_cluster_and_prepare_flink
+
+# TODO Remove. Smoke test to see if Flink is operable.
+INPUT_ARGS=""
+OUTPUT_PATH=hdfs:///user/hadoop-user/wc-out-$RANDOM
+docker exec master bash -c "export HADOOP_CLASSPATH=\`hadoop classpath\` && \
+   /home/hadoop-user/$FLINK_DIRNAME/bin/flink run-application \
+   -t yarn-application \
+   -Dtaskmanager.numberOfTaskSlots=1 \
+   -Dtaskmanager.memory.process.size=1000m \
+   -Djobmanager.memory.process.size=1000m \
+   -Dparallelism.default=3 \
+   -Dtaskmanager.memory.jvm-metaspace.size=128m \
+   /home/hadoop-user/$FLINK_DIRNAME/examples/streaming/WordCount.jar $INPUT_ARGS --output $OUTPUT_PATH";
+
 
 # Configure Flink
 docker exec master bash -c "cat <<END_CONF >> \"/home/hadoop-user/$FLINK_DIRNAME/conf/flink-conf.yaml\"
