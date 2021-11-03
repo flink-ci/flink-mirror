@@ -41,9 +41,13 @@ yarn_jars="${jars//[[:space:]]/;}"
 # Inject the jars into the classpath of the command-line client 'flink'
 export FLINK_CLIENT_ADD_CLASSPATH="$classpath_jars"
 # TODO Remove debug
+echo "===== FLINK_CLIENT_ADD_CLASSPATH:"
 echo $FLINK_CLIENT_ADD_CLASSPATH
+echo "===== HADOOP_CLASSPATH:"
+echo $HADOOP_CLASSPATH
 
 # TODO Remove debug
+echo "===== Running command:"
 echo "$FLINK_HOME_DIR/bin/flink" \
   run \
   --target yarn-per-job \

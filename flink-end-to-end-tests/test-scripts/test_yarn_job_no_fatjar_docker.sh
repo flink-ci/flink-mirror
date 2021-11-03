@@ -28,16 +28,15 @@ start_hadoop_cluster_and_prepare_flink
 # TODO Remove. Smoke test to see if Flink is operable.
 INPUT_ARGS=""
 OUTPUT_PATH=hdfs:///user/hadoop-user/wc-out-$RANDOM
+echo "=== Run smoke test"
 docker exec master bash -c "export HADOOP_CLASSPATH=\`hadoop classpath\` && \
-   /home/hadoop-user/$FLINK_DIRNAME/bin/flink run-application \
-   -t yarn-application \
-   -Dtaskmanager.numberOfTaskSlots=1 \
-   -Dtaskmanager.memory.process.size=1000m \
-   -Djobmanager.memory.process.size=1000m \
-   -Dparallelism.default=3 \
-   -Dtaskmanager.memory.jvm-metaspace.size=128m \
-   /home/hadoop-user/$FLINK_DIRNAME/examples/streaming/WordCount.jar $INPUT_ARGS --output $OUTPUT_PATH";
-
+   echo \$HADOOP_CLASSPATH \
+   /home/hadoop-user/$FLINK_DIRNAME/bin/flink run -m yarn-cluster -ys 1 -ytm 1000 -yjm 1000 -p 3 \
+   -yD taskmanager.memory.jvm-metaspace.size=128m \
+   /home/hadoop-user/$FLINK_DIRNAME/examples/streaming/WordCount.jar $INPUT_ARGS --output $OUTPUT_PATH"
+OUTPUT=$(get_output "$OUTPUT_PATH/*")
+echo "$OUTPUT"
+echo "=== Done smoke test"
 
 # Configure Flink
 docker exec master bash -c "cat <<END_CONF >> \"/home/hadoop-user/$FLINK_DIRNAME/conf/flink-conf.yaml\"
@@ -48,7 +47,7 @@ taskmanager.memory.process.size: 1g
 restart-strategy: none
 yarn.application-attempts: 1
 END_CONF"
-echo "Flink config after configuring:"
+echo "=== Flink config after configuring:"
 docker exec master bash -c "cat /home/hadoop-user/$FLINK_DIRNAME/conf/flink-conf.yaml"
 
 # Install the application distribution to the cluster
@@ -63,6 +62,7 @@ docker cp "$APP_DISTR_PATH" master:/home/hadoop-user/
 docker exec master bash -c "tar xzf /home/hadoop-user/$APP_DISTR_FILE --directory /home/hadoop-user"
 APP_HOME_DIR="/home/hadoop-user/flink-yarn-no-fatjar"
 # TODO Remove debug
+echo "=== Content of $APP_HOME_DIR:"
 docker exec master bash -c "ls -l $APP_HOME_DIR"
 
 # make the output path random, just in case it already exists, for example if we
@@ -77,6 +77,7 @@ export FLINK_HOME_DIR=\"/home/hadoop-user/$FLINK_DIRNAME\"
 export OUTPUT_LOCATION=\"$OUTPUT_PATH\"
 END_CONF"
 # TODO Remove debug
+echo "=== Content of app-conf.sh:"
 docker exec master bash -c "cat $APP_HOME_DIR/conf/app-conf.sh"
 
 if docker exec master bash -c "$APP_HOME_DIR/bin/flink-yarn-no-fatjar-test.sh"
