@@ -21,6 +21,7 @@ package org.apache.flink.test.checkpointing;
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.restartstrategy.RestartStrategies;
+import org.apache.flink.api.common.state.CheckpointListener;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
@@ -48,6 +49,7 @@ import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration;
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction;
 import org.apache.flink.streaming.api.checkpoint.ListCheckpointed;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.CheckpointConfig;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.sink.DiscardingSink;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
@@ -80,6 +82,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.apache.flink.runtime.testutils.CommonTestUtils.waitForAllTaskRunning;
@@ -95,22 +98,27 @@ public class RescalingITCase extends TestLogger {
     private static final int slotsPerTaskManager = 2;
     private static final int numSlots = numTaskManagers * slotsPerTaskManager;
 
-    @Parameterized.Parameters(name = "backend = {0}, buffersPerChannel = {1}")
+    @Parameterized.Parameters(
+            name = "backend = {0}, buffersPerChannel = {1}, incrementalFlag = {2}")
     public static Collection<Object[]> data() {
         return Arrays.asList(
                 new Object[][] {
-                    {"filesystem", 2}, {"rocksdb", 0}, {"filesystem", 0}, {"rocksdb", 2}
+                    {"filesystem", 2, false}, {"rocksdb", 0, true},
+                    {"filesystem", 0, false}, {"rocksdb", 2, false}
                 });
     }
 
-    public RescalingITCase(String backend, int buffersPerChannel) {
+    public RescalingITCase(String backend, int buffersPerChannel, boolean incrementalFlag) {
         this.backend = backend;
         this.buffersPerChannel = buffersPerChannel;
+        this.incrementalFlag = incrementalFlag;
     }
 
     private final String backend;
 
     private final int buffersPerChannel;
+
+    private final boolean incrementalFlag;
 
     private String currentBackend = null;
 
@@ -124,6 +132,7 @@ public class RescalingITCase extends TestLogger {
     private static MiniClusterWithClientResource cluster;
 
     @ClassRule public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private File checkpointDir;
 
     @Before
     public void setup() throws Exception {
@@ -135,7 +144,7 @@ public class RescalingITCase extends TestLogger {
 
             Configuration config = new Configuration();
 
-            final File checkpointDir = temporaryFolder.newFolder();
+            checkpointDir = temporaryFolder.newFolder();
             final File savepointDir = temporaryFolder.newFolder();
 
             config.setString(StateBackendOptions.STATE_BACKEND, currentBackend);
@@ -143,6 +152,8 @@ public class RescalingITCase extends TestLogger {
                     CheckpointingOptions.CHECKPOINTS_DIRECTORY, checkpointDir.toURI().toString());
             config.setString(
                     CheckpointingOptions.SAVEPOINT_DIRECTORY, savepointDir.toURI().toString());
+            config.setBoolean(CheckpointingOptions.INCREMENTAL_CHECKPOINTS, incrementalFlag);
+            config.setInteger(CheckpointingOptions.MAX_RETAINED_CHECKPOINTS, 20);
             config.setInteger(
                     NettyShuffleEnvironmentOptions.NETWORK_BUFFERS_PER_CHANNEL, buffersPerChannel);
 
@@ -288,6 +299,139 @@ public class RescalingITCase extends TestLogger {
             // clear the CollectionSink set for the restarted job
             CollectionSink.clearElementsSet();
         }
+    }
+
+    @Test
+    public void testCheckpointRescalingInKeyedState() throws Exception {
+        testCheckpointRescalingKeyedState(false, false);
+    }
+
+    @Test
+    public void testCheckpointRescalingOutKeyedState() throws Exception {
+        testCheckpointRescalingKeyedState(true, false);
+    }
+
+    @Test
+    public void testCheckpointRescalingInKeyedStateDerivedMaxParallelism() throws Exception {
+        testCheckpointRescalingKeyedState(false, true);
+    }
+
+    @Test
+    public void testCheckpointRescalingOutKeyedStateDerivedMaxParallelism() throws Exception {
+        testCheckpointRescalingKeyedState(true, true);
+    }
+
+    /**
+     * Tests that a job with purely keyed state can be restarted from a checkpoint with a different
+     * parallelism.
+     */
+    public void testCheckpointRescalingKeyedState(boolean scaleOut, boolean deriveMaxParallelism)
+            throws Exception {
+        final int numberKeys = 42;
+        final int numberElements = 1000;
+        final int numberElements2 = 500;
+        final int parallelism = scaleOut ? 3 : 4;
+        final int parallelism2 = scaleOut ? 4 : 3;
+        final int maxParallelism = 13;
+        Duration timeout = Duration.ofMinutes(3);
+        Deadline deadline = Deadline.now().plus(timeout);
+        ClusterClient<?> client = cluster.getClusterClient();
+        try {
+            JobGraph jobGraph =
+                    createJobGraphWithKeyedState(
+                            parallelism, maxParallelism, numberKeys, numberElements, false, 100);
+            final JobID jobID = jobGraph.getJobID();
+            // make sure the job does not finish before we cancel it
+            StateSourceBase.canFinishLatch = new CountDownLatch(1);
+            client.submitJob(jobGraph).get();
+            // wait till the sources have emitted numberElements for each key
+            assertTrue(
+                    SubtaskIndexFlatMapper.workCompletedLatch.await(
+                            deadline.timeLeft().toMillis(), TimeUnit.MILLISECONDS));
+            // verify the current state
+            Set<Tuple2<Integer, Integer>> actualResult = CollectionSink.getElementsSet();
+            Set<Tuple2<Integer, Integer>> expectedResult = new HashSet<>();
+            for (int key = 0; key < numberKeys; key++) {
+                int keyGroupIndex = KeyGroupRangeAssignment.assignToKeyGroup(key, maxParallelism);
+                expectedResult.add(
+                        Tuple2.of(
+                                KeyGroupRangeAssignment.computeOperatorIndexForKeyGroup(
+                                        maxParallelism, parallelism, keyGroupIndex),
+                                numberElements * key));
+            }
+            assertEquals(expectedResult, actualResult);
+            // don't cancel source before we get a completed checkpoint
+            while (SubtaskIndexFlatMapper.completedCheckpointNum.get() / parallelism < 1) {
+                Thread.sleep(10);
+            }
+            String checkpointPath = getLastedCheckpointPath();
+            while (checkpointPath == null) {
+                Thread.sleep(10);
+                checkpointPath = getLastedCheckpointPath();
+            }
+            // clear the CollectionSink set for the restarted job
+            CollectionSink.clearElementsSet();
+            StateSourceBase.canFinishLatch.countDown();
+            client.cancel(jobID).get();
+            while (!getRunningJobs(client).isEmpty()) {
+                Thread.sleep(50);
+            }
+            int restoreMaxParallelism =
+                    deriveMaxParallelism ? JobVertex.MAX_PARALLELISM_DEFAULT : maxParallelism;
+            JobGraph scaledJobGraph =
+                    createJobGraphWithKeyedState(
+                            parallelism2,
+                            restoreMaxParallelism,
+                            numberKeys,
+                            numberElements + numberElements2,
+                            true,
+                            100);
+            scaledJobGraph.setSavepointRestoreSettings(
+                    SavepointRestoreSettings.forPath(checkpointPath));
+            submitJobAndWaitForResult(client, scaledJobGraph, getClass().getClassLoader());
+            assertTrue(
+                    SubtaskIndexFlatMapper.workCompletedLatch.await(
+                            deadline.timeLeft().toMillis(), TimeUnit.MILLISECONDS));
+            Set<Tuple2<Integer, Integer>> actualResult2 = CollectionSink.getElementsSet();
+            Set<Tuple2<Integer, Integer>> expectedResult2 = new HashSet<>();
+            for (int key = 0; key < numberKeys; key++) {
+                int keyGroupIndex = KeyGroupRangeAssignment.assignToKeyGroup(key, maxParallelism);
+                expectedResult2.add(
+                        Tuple2.of(
+                                KeyGroupRangeAssignment.computeOperatorIndexForKeyGroup(
+                                        maxParallelism, parallelism2, keyGroupIndex),
+                                key * (numberElements + numberElements2)));
+            }
+            assertEquals(expectedResult2, actualResult2);
+        } finally {
+            // clear the CollectionSink set for the restarted job
+            CollectionSink.clearElementsSet();
+        }
+    }
+
+    private String getLastedCheckpointPath() {
+        String checkpointPath = null;
+        int ckpId = 0;
+        for (File instanceFile : checkpointDir.listFiles()) {
+            for (File file : instanceFile.listFiles()) {
+                if (!file.getName().startsWith("chk-")) {
+                    continue;
+                }
+                boolean flag = false;
+                for (File child : file.listFiles()) {
+                    if (child.getName().endsWith("_metadata")) {
+                        flag = true;
+                        break;
+                    }
+                }
+                int currentChk = Integer.parseInt(file.getName().substring(4));
+                if (flag && currentChk > ckpId) {
+                    ckpId = currentChk;
+                    checkpointPath = instanceFile.getPath() + "/chk-" + ckpId + "/";
+                }
+            }
+        }
+        return checkpointPath;
     }
 
     /**
@@ -667,6 +811,9 @@ public class RescalingITCase extends TestLogger {
             env.getConfig().setMaxParallelism(maxParallelism);
         }
         env.enableCheckpointing(checkpointingInterval);
+        env.getCheckpointConfig()
+                .setExternalizedCheckpointCleanup(
+                        CheckpointConfig.ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
         env.setRestartStrategy(RestartStrategies.noRestart());
         env.getConfig().setUseSnapshotCompression(true);
 
@@ -816,10 +963,11 @@ public class RescalingITCase extends TestLogger {
 
     private static class SubtaskIndexFlatMapper
             extends RichFlatMapFunction<Integer, Tuple2<Integer, Integer>>
-            implements CheckpointedFunction {
+            implements CheckpointedFunction, CheckpointListener {
 
         private static final long serialVersionUID = 5273172591283191348L;
 
+        private static AtomicInteger completedCheckpointNum;
         private static CountDownLatch workCompletedLatch = new CountDownLatch(1);
 
         private transient ValueState<Integer> counter;
@@ -829,6 +977,7 @@ public class RescalingITCase extends TestLogger {
 
         SubtaskIndexFlatMapper(int numberElements) {
             this.numberElements = numberElements;
+            this.completedCheckpointNum = new AtomicInteger();
         }
 
         @Override
@@ -860,6 +1009,16 @@ public class RescalingITCase extends TestLogger {
             sum =
                     context.getKeyedStateStore()
                             .getState(new ValueStateDescriptor<>("sum", Integer.class, 0));
+        }
+
+        @Override
+        public void notifyCheckpointComplete(long checkpointId) throws Exception {
+            completedCheckpointNum.getAndIncrement();
+        }
+
+        @Override
+        public void notifyCheckpointAborted(long checkpointId) throws Exception {
+            CheckpointListener.super.notifyCheckpointAborted(checkpointId);
         }
     }
 
