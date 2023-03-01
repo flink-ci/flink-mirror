@@ -140,7 +140,7 @@ public class ClusterOptions {
     public static final ConfigOption<Boolean> ENABLE_FINE_GRAINED_RESOURCE_MANAGEMENT =
             ConfigOptions.key("cluster.fine-grained-resource-management.enabled")
                     .booleanType()
-                    .defaultValue(false)
+                    .defaultValue(true)
                     .withDescription(
                             "Defines whether the cluster uses fine-grained resource management.");
 
@@ -228,11 +228,7 @@ public class ClusterOptions {
     }
 
     public static boolean isFineGrainedResourceManagementEnabled(Configuration configuration) {
-        if (configuration.contains(ENABLE_FINE_GRAINED_RESOURCE_MANAGEMENT)) {
-            return configuration.get(ENABLE_FINE_GRAINED_RESOURCE_MANAGEMENT);
-        } else {
-            return System.getProperties().containsKey("flink.tests.enable-fine-grained");
-        }
+        return configuration.get(ENABLE_FINE_GRAINED_RESOURCE_MANAGEMENT);
     }
 
     /** The mode of how to handle user code attempting to exit JVM. */
