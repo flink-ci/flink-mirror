@@ -332,8 +332,10 @@ class SerializerConfigImplTest {
                 "pipeline.serialization-config",
                 "{org.apache.flink.api.common.serialization.SerializerConfigImplTest:"
                         + " {type: typeinfo, class: org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestTypeInfoFactory}}");
-        serializerConfig.configure(
-                configuration, Thread.currentThread().getContextClassLoader());
+        serializerConfig.configure(configuration, Thread.currentThread().getContextClassLoader());
+        serializerConfig
+                .getDefaultKryoSerializerClasses()
+                .forEach(serializerConfig::registerTypeWithKryoSerializer);
 
         assertThat(serializerConfig.copy()).isEqualTo(serializerConfig);
     }
