@@ -131,46 +131,12 @@ final class DataTypeFactoryImpl implements DataTypeFactory {
     private static Supplier<SerializerConfig> createSerializerConfig(
             ClassLoader classLoader, ReadableConfig config, SerializerConfig serializerConfig) {
         return () -> {
-            final SerializerConfig newSerializerConfig = new SerializerConfigImpl();
-
+            SerializerConfig newSerializerConfig = new SerializerConfigImpl();
             if (serializerConfig != null) {
-                if (serializerConfig.isForceKryoEnabled()) {
-                    newSerializerConfig.setForceKryo(true);
-                }
-
-                if (serializerConfig.isForceAvroEnabled()) {
-                    newSerializerConfig.setForceAvro(true);
-                }
-
-                serializerConfig
-                        .getDefaultKryoSerializers()
-                        .forEach(
-                                (c, s) ->
-                                        newSerializerConfig.addDefaultKryoSerializer(
-                                                c, s.getSerializer()));
-
-                serializerConfig
-                        .getDefaultKryoSerializerClasses()
-                        .forEach(newSerializerConfig::addDefaultKryoSerializer);
-
-                serializerConfig
-                        .getRegisteredKryoTypes()
-                        .forEach(newSerializerConfig::registerKryoType);
-
-                serializerConfig
-                        .getRegisteredTypesWithKryoSerializerClasses()
-                        .forEach(newSerializerConfig::registerTypeWithKryoSerializer);
-
-                serializerConfig
-                        .getRegisteredTypesWithKryoSerializers()
-                        .forEach(
-                                (c, s) ->
-                                        newSerializerConfig.registerTypeWithKryoSerializer(
-                                                c, s.getSerializer()));
+                newSerializerConfig = serializerConfig.copy();
+            } else {
+                newSerializerConfig.configure(config, classLoader);
             }
-
-            newSerializerConfig.configure(config, classLoader);
-
             return newSerializerConfig;
         };
     }
