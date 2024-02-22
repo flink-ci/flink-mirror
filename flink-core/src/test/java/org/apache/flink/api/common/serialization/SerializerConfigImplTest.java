@@ -58,8 +58,8 @@ class SerializerConfigImplTest {
     @Test
     void testDoubleTypeRegistration() {
         SerializerConfig config = new SerializerConfigImpl();
-        List<Class<?>> types = Arrays.<Class<?>>asList(Double.class, Integer.class, Double.class);
-        List<Class<?>> expectedTypes = Arrays.<Class<?>>asList(Double.class, Integer.class);
+        List<Class<?>> types = Arrays.asList(Double.class, Integer.class, Double.class);
+        List<Class<?>> expectedTypes = Arrays.asList(Double.class, Integer.class);
 
         for (Class<?> tpe : types) {
             config.registerKryoType(tpe);
@@ -299,6 +299,43 @@ class SerializerConfigImplTest {
                 .hasRootCauseMessage(
                         "Unsupported serializer type random for"
                                 + " class org.apache.flink.api.common.serialization.SerializerConfigImplTest");
+    }
+
+    @Test
+    void testCopyDefaultSerializationConfig() {
+        SerializerConfig config = new SerializerConfigImpl();
+        Configuration configuration = new Configuration();
+        config.configure(configuration, SerializerConfigImplTest.class.getClassLoader());
+
+        assertThat(config.copy()).isEqualTo(config);
+    }
+
+    @Test
+    void testCopySerializerConfig() {
+        SerializerConfig serializerConfig = new SerializerConfigImpl();
+        Configuration configuration = new Configuration();
+        configuration.setString(
+                "pipeline.registered-kryo-types",
+                "org.apache.flink.api.common.serialization.SerializerConfigImplTest;"
+                        + "org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer1");
+        configuration.setString(
+                "pipeline.default-kryo-serializers",
+                "class:org.apache.flink.api.common.serialization.SerializerConfigImplTest,"
+                        + "serializer:org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer1;"
+                        + "class:org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer1,"
+                        + "serializer:org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer2");
+        configuration.setString(
+                "pipeline.registered-pojo-types",
+                "org.apache.flink.api.common.serialization.SerializerConfigImplTest;"
+                        + "org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer1");
+        configuration.setString(
+                "pipeline.serialization-config",
+                "{org.apache.flink.api.common.serialization.SerializerConfigImplTest:"
+                        + " {type: typeinfo, class: org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestTypeInfoFactory}}");
+        serializerConfig.configure(
+                configuration, Thread.currentThread().getContextClassLoader());
+
+        assertThat(serializerConfig.copy()).isEqualTo(serializerConfig);
     }
 
     private SerializerConfig getConfiguredSerializerConfig(String serializationConfigStr) {
