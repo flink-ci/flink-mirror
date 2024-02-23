@@ -53,8 +53,10 @@ class SerializerConfigImplTest {
     static {
         configs.put(
                 KRYO_DEFAULT_SERIALIZERS,
-                "org.apache.flink.api.common.serialization.SerializerConfigImplTest;"
-                        + "org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer1");
+                "class:org.apache.flink.api.common.serialization.SerializerConfigImplTest,"
+                        + "serializer:org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer1;"
+                        + "class:org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer1,"
+                        + "serializer:org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer2");
         configs.put(
                 KRYO_REGISTERED_CLASSES,
                 "org.apache.flink.api.common.serialization.SerializerConfigImplTest;"
@@ -63,10 +65,6 @@ class SerializerConfigImplTest {
                 POJO_REGISTERED_CLASSES,
                 "org.apache.flink.api.common.serialization.SerializerConfigImplTest;"
                         + "org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestSerializer1");
-        configs.put(
-                SERIALIZATION_CONFIG,
-                "{org.apache.flink.api.common.serialization.SerializerConfigImplTest:"
-                        + " {type: typeinfo, class: org.apache.flink.api.common.serialization.SerializerConfigImplTest$TestTypeInfoFactory}}");
     }
 
     @Test
@@ -333,7 +331,7 @@ class SerializerConfigImplTest {
         Configuration configuration = new Configuration();
         configs.forEach((k, v) -> configuration.setString(k.key(), v));
 
-        serializerConfig.configure(configuration, Thread.currentThread().getContextClassLoader());
+        serializerConfig.configure(configuration, SerializerConfigImplTest.class.getClassLoader());
         serializerConfig
                 .getDefaultKryoSerializerClasses()
                 .forEach(serializerConfig::registerTypeWithKryoSerializer);
