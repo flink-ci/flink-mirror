@@ -103,6 +103,7 @@ class YarnFileStageTestS3ITCase {
                 out.println("\t\t<value>" + entry.getValue() + "</value>");
                 out.println("\t</property>");
             }
+
             out.println("</configuration>");
         }
 
