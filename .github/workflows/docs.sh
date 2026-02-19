@@ -97,11 +97,8 @@ if [ -f  ./flink-python/dev/lint-python.sh ]; then
     PYFLINK_GATEWAY_DISABLED=1 ./flink-python/dev/lint-python.sh -i "sphinx"
 
     # build Chinese python docs into _build/html/zh/ subdirectory
-    UV_HOME="${FLINK_UV_HOME:-./flink-python/dev/.uv}"
     pushd flink-python/docs
-    source "$UV_HOME/bin/activate"
     make zh
-    deactivate
     popd
 
     # move python docs (English at root, Chinese at zh/)
