@@ -360,6 +360,7 @@ public class SourceOperator<OUT, SplitT extends SourceSplit> extends AbstractStr
             InternalSourceSplitMetricGroup splitMetricGroup =
                     InternalSourceSplitMetricGroup.wrap(
                             getMetricGroup(),
+                            processingTimeService.getClock(),
                             splitId,
                             () ->
                                     splitCurrentWatermarks.getOrDefault(
