@@ -144,9 +144,9 @@ public interface PartitionedTable {
      * Converts this dynamic table into an append-only table with an explicit operation code column
      * using the built-in {@code TO_CHANGELOG} process table function.
      *
-     * <p>Each input row - regardless of its original RowKind - is emitted as an INSERT-only row
-     * with a string {@code "op"} column indicating the original operation (INSERT, UPDATE_AFTER,
-     * DELETE, etc.).
+     * <p>Each input row - regardless of its original change operation - is emitted as an
+     * INSERT-only row with a string {@code "op"} column indicating the original operation (INSERT,
+     * UPDATE_AFTER, DELETE, etc.).
      *
      * <p>Optional arguments can be passed using named expressions:
      *
@@ -158,6 +158,12 @@ public interface PartitionedTable {
      * table.partitionBy($("id")).toChangelog(
      *     descriptor("op_code").asArgument("op"),
      *     map("INSERT", "I", "UPDATE_AFTER", "U").asArgument("op_mapping")
+     * );
+     *
+     * // Deletion flag pattern: comma-separated keys map multiple change operations to the same code
+     * table.partitionBy($("id")).toChangelog(
+     *     descriptor("deleted").asArgument("op"),
+     *     map("INSERT, UPDATE_AFTER", "false", "DELETE", "true").asArgument("op_mapping")
      * );
      * }</pre>
      *

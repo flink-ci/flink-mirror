@@ -36,7 +36,7 @@ Flink SQL provides built-in process table functions (PTFs) for working with chan
 
 ## TO_CHANGELOG
 
-The `TO_CHANGELOG` PTF converts a dynamic table (i.e. an updating table) into an append-only table with an explicit operation code column. Each input row - regardless of its original `RowKind` (INSERT, UPDATE_BEFORE, UPDATE_AFTER, DELETE) - is emitted as an INSERT-only row with a string column indicating the original operation.
+The `TO_CHANGELOG` PTF converts a dynamic table (i.e. an updating table) into an append-only table with an explicit operation code column. Each input row - regardless of its original change operation (INSERT, UPDATE_BEFORE, UPDATE_AFTER, DELETE) - is emitted as an INSERT-only row with a string column indicating the original operation.
 
 This is useful when you need to materialize changelog events into a downstream system that only supports appends (e.g., a message queue, log store, or append-only file sink). It is also useful to filter out certain types of updates, for example DELETEs.
 
@@ -56,13 +56,13 @@ SELECT * FROM TO_CHANGELOG(
 |:-------------|:---------|:------------|
 | `input`      | Yes      | The input table. Must include `PARTITION BY` for parallel execution. Accepts insert-only, retract, and upsert tables. |
 | `op`         | No       | A `DESCRIPTOR` with a single column name for the operation code column. Defaults to `op`. |
-| `op_mapping` | No       | A `MAP<STRING, STRING>` mapping `RowKind` names to custom output codes. When provided, only mapped RowKinds are forwarded - unmapped events are dropped. |
+| `op_mapping` | No       | A `MAP<STRING, STRING>` mapping change operation names to custom output codes. Keys can contain comma-separated names to map multiple operations to the same code (e.g., `'INSERT, UPDATE_AFTER'`). When provided, only mapped operations are forwarded - unmapped events are dropped. Each change operation may appear at most once across all entries. |
 
 #### Default op_mapping
 
-When `op_mapping` is omitted, all four RowKinds are mapped to their standard names:
+When `op_mapping` is omitted, all four change operations are mapped to their standard names:
 
-| RowKind         | Output value      |
+| Change Operation | Output value      |
 |:----------------|:------------------|
 | INSERT          | `'INSERT'`        |
 | UPDATE_BEFORE   | `'UPDATE_BEFORE'` |
@@ -122,6 +122,19 @@ SELECT * FROM TO_CHANGELOG(
 -- op_code values are 'I' and 'U' instead of full names
 ```
 
+#### Deletion flag pattern
+
+```sql
+SELECT * FROM TO_CHANGELOG(
+  input => TABLE my_aggregation PARTITION BY id,
+  op => DESCRIPTOR(deleted),
+  op_mapping => MAP['INSERT, UPDATE_AFTER', 'false', 'DELETE', 'true']
+)
+-- INSERT and UPDATE_AFTER produce deleted='false'
+-- DELETE produces deleted='true'
+-- UPDATE_BEFORE is dropped (not in the mapping)
+```
+
 #### Table API
 
 ```java
@@ -132,6 +145,12 @@ Table result = myTable.partitionBy($("id")).toChangelog();
 Table result = myTable.partitionBy($("id")).toChangelog(
     descriptor("op_code").asArgument("op"),
     map("INSERT", "I", "UPDATE_AFTER", "U").asArgument("op_mapping")
+);
+
+// Deletion flag pattern: comma-separated keys map multiple change operations to the same code
+Table result = myTable.partitionBy($("id")).toChangelog(
+    descriptor("deleted").asArgument("op"),
+    map("INSERT, UPDATE_AFTER", "false", "DELETE", "true").asArgument("op_mapping")
 );
 ```
 
