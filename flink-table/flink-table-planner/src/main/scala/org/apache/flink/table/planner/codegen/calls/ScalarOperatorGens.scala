@@ -19,7 +19,7 @@ package org.apache.flink.table.planner.codegen.calls
 
 import org.apache.flink.table.api.ValidationException
 import org.apache.flink.table.api.config.ExecutionConfigOptions
-import org.apache.flink.table.data.binary.BinaryArrayData
+import org.apache.flink.table.data.binary.{BinaryArrayData, BinaryStringData}
 import org.apache.flink.table.data.util.MapDataUtil
 import org.apache.flink.table.data.utils.CastExecutor
 import org.apache.flink.table.data.writer.{BinaryArrayWriter, BinaryRowWriter}
@@ -1658,6 +1658,7 @@ object ScalarOperatorGens {
     }
 
     try {
+      // No escaping here as it will be done in the primitiveLiteralForType according to the type of the literal value.
       val result = castExecutor.cast(literalExpr.literalValue.get)
       val resultTerm = newName(ctx, "stringToTime")
 
