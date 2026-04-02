@@ -358,6 +358,16 @@ public interface TableChange {
     }
 
     /**
+     * A table change to modify materialized table start mode.
+     *
+     * @param startMode the modified start mode.
+     * @return a TableChange represents the modification.
+     */
+    static ModifyStartMode modifyStartMode(StartMode startMode) {
+        return new ModifyStartMode(startMode);
+    }
+
+    /**
      * A table change to modify materialized table refresh status.
      *
      * @param refreshStatus the modified refresh status.
@@ -1468,6 +1478,43 @@ public interface TableChange {
         @Override
         public int hashCode() {
             return Objects.hash(definitionQuery, originalQuery);
+        }
+    }
+
+    /** A table change to modify materialized table start mode. */
+    @PublicEvolving
+    class ModifyStartMode implements MaterializedTableChange {
+
+        private final StartMode startMode;
+
+        public ModifyStartMode(StartMode startMode) {
+            this.startMode = startMode;
+        }
+
+        public StartMode getStartMode() {
+            return startMode;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ModifyStartMode that = (ModifyStartMode) o;
+            return Objects.equals(startMode, that.startMode);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(startMode);
+        }
+
+        @Override
+        public String toString() {
+            return "ModifyStartMode{" + "startMode=" + startMode + '}';
         }
     }
 }
