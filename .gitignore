@@ -17,6 +17,7 @@ scalastyle-output.xml
 .settings
 .project
 .version.properties
+.spotless-index-file
 filter.properties
 logs.zip
 .mvn/wrapper/*.jar
