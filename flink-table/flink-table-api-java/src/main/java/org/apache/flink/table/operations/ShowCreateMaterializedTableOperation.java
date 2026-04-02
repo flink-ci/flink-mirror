@@ -64,6 +64,7 @@ public class ShowCreateMaterializedTableOperation implements ShowOperation {
                         tableIdentifier,
                         table.isTemporary(),
                         createOrAlter,
+                        ctx.getTableConfig().getLocalTimeZone(),
                         ctx.getCatalogManager().getSqlFactory());
 
         return buildStringArrayResult("result", new String[] {resultRow});

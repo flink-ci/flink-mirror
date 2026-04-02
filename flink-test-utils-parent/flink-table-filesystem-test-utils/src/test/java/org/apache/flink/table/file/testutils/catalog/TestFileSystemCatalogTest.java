@@ -35,6 +35,8 @@ import org.apache.flink.table.catalog.ObjectPath;
 import org.apache.flink.table.catalog.ResolvedCatalogMaterializedTable;
 import org.apache.flink.table.catalog.ResolvedCatalogTable;
 import org.apache.flink.table.catalog.ResolvedSchema;
+import org.apache.flink.table.catalog.StartMode;
+import org.apache.flink.table.catalog.StartMode.StartModeKind;
 import org.apache.flink.table.catalog.TestSchemaResolver;
 import org.apache.flink.table.catalog.UniqueConstraint;
 import org.apache.flink.table.catalog.exceptions.CatalogException;
@@ -126,7 +128,8 @@ public class TestFileSystemCatalogTest extends TestFileSystemCatalogTestBase {
                             .build(),
                     CREATE_RESOLVED_SCHEMA,
                     RefreshMode.CONTINUOUS,
-                    FRESHNESS);
+                    FRESHNESS,
+                    StartMode.of(StartModeKind.FROM_BEGINNING));
 
     private static final TestRefreshHandler REFRESH_HANDLER =
             new TestRefreshHandler("jobID: xxx, clusterId: yyy");
