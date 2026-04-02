@@ -1517,4 +1517,38 @@ public interface TableChange {
             return "ModifyStartMode{" + "startMode=" + startMode + '}';
         }
     }
+
+    /** A table change to modify comment for table or materialized table. */
+    @PublicEvolving
+    class ModifyTableComment implements CatalogTableChange, MaterializedTableChange {
+
+        private final String comment;
+
+        public ModifyTableComment(String comment) {
+            this.comment = comment;
+        }
+
+        public String getComment() {
+            return comment;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ModifyTableComment that = (ModifyTableComment) o;
+            return Objects.equals(comment, that.comment);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(comment);
+        }
+
+        @Override
+        public String toString() {
+            return "ModifyTableComment{" + "comment='" + comment + '\'' + '}';
+        }
+    }
 }
