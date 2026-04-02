@@ -1327,6 +1327,8 @@ class TemporalTypesTest extends ExpressionTestBase {
     testSqlApi("TIMESTAMPDIFF(MONTH, TIME '00:00:00', TIMESTAMP '2021-02-04 12:00:00')", "613")
     testSqlApi("TIMESTAMPDIFF(MONTH, DATE '2021-01-04', TIME '00:00:00')", "-612")
     testSqlApi("TIMESTAMPDIFF(MONTH, TIME '00:00:00', DATE '2021-02-04')", "613")
+    testSqlApi("TIMESTAMPDIFF(SECOND, TIME'10:10:10', TIME'11:11:11')", "3661");
+    testSqlApi("TIMESTAMPDIFF(MINUTE, TIME'08:00:00', TIME'11:11:00')", "191");
   }
 
   @Test
