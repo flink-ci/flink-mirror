@@ -18,7 +18,6 @@ scalastyle-output.xml
 .version.properties
 .spotless-index-file
 filter.properties
-logs.zip
 .mvn/wrapper/*.jar
 .mvn/maven.config
 target
