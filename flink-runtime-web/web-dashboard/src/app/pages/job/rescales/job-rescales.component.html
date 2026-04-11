@@ -391,8 +391,7 @@
         <ng-container *ngIf="rescalesConfig">
           <tr>
             <td>Scheduler Execution Mode</td>
-            <td *ngIf="rescalesConfig['schedulerExecutionMode'] === 'REACTIVE'">REACTIVE</td>
-            <td *ngIf="rescalesConfig['schedulerExecutionMode'] !== 'REACTIVE'"></td>
+            <td>{{ rescalesConfig['schedulerExecutionMode'] || '-' }}</td>
           </tr>
           <tr>
             <td>Submission Resource Wait Timeout</td>
