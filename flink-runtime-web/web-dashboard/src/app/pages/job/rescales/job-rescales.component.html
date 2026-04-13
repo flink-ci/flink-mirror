@@ -23,6 +23,408 @@
   [nzTabBarExtraContent]="extraTemplate"
   (nzSelectedIndexChange)="refresh()"
 >
+  <nz-tab nzTitle="Overview">
+    <!-- Reusable template for rescale details -->
+    <ng-template #rescaleDetailsTemplate let-rescale="rescale">
+      <div class="overview-rescale-section">
+        <h3><strong>Rescale Details</strong></h3>
+        <div>
+          <span>
+            <strong>Rescale UUID:</strong>
+            <span nz-tooltip [nzTooltipTitle]="rescale.rescaleUuid">
+              {{ truncateUuid(rescale.rescaleUuid) }}
+            </span>
+          </span>
+          <nz-divider nzType="vertical"></nz-divider>
+          <span>
+            <strong>Requirements ID:</strong>
+            <span nz-tooltip [nzTooltipTitle]="rescale.resourceRequirementsUuid">
+              {{ truncateUuid(rescale.resourceRequirementsUuid) }}
+            </span>
+          </span>
+          <nz-divider nzType="vertical"></nz-divider>
+          <span>
+            <strong>Attempt ID:</strong>
+            {{ rescale.rescaleAttemptId }}
+          </span>
+          <nz-divider nzType="vertical"></nz-divider>
+          <span>
+            <strong>Trigger Cause:</strong>
+            {{ rescale.triggerCause }}
+          </span>
+          <nz-divider nzType="vertical"></nz-divider>
+          <span>
+            <strong>Terminal State:</strong>
+            {{ rescale?.terminalState || '-' }}
+          </span>
+          <nz-divider nzType="vertical"></nz-divider>
+          <span>
+            <strong>Terminal Reason:</strong>
+            {{ rescale?.terminatedReason || '-' }}
+          </span>
+        </div>
+        <ng-container *ngIf="getDetail(rescale.rescaleUuid) as detail">
+          <nz-table
+            class="small"
+            [nzData]="detail.vertices | keyvalue"
+            [nzSize]="'small'"
+            [nzFrontPagination]="false"
+            [nzShowPagination]="false"
+            [nzTitle]="verticesTitle"
+            [nzBordered]="true"
+          >
+            <thead>
+              <tr>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The unique ID of target JobVertex consists of 32 hexadecimal characters"
+                >
+                  <strong>ID</strong>
+                </th>
+                <th nz-tooltip nzTooltipTitle="The short name of target vertex">
+                  <strong>Name</strong>
+                </th>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The previous parallelism of target vertex before the current rescale"
+                >
+                  <strong>Previous Parallelism</strong>
+                </th>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The acquired parallelism of target vertex after the current rescale"
+                >
+                  <strong>Acquired Parallelism</strong>
+                </th>
+                <th nz-tooltip nzTooltipTitle="The desired parallelism of the target vertex">
+                  <strong>Desired Parallelism</strong>
+                </th>
+                <th nz-tooltip nzTooltipTitle="The minimal parallelism of target vertex to run">
+                  <strong>Sufficient Parallelism</strong>
+                </th>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The unique ID of the slot sharing group consists of 32 hexadecimal characters"
+                >
+                  <strong>Slot Sharing Group ID</strong>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let vertex of detail.vertices | keyvalue">
+                <td nz-tooltip [nzTooltipTitle]="vertex.value.jobVertexId">
+                  {{ truncateUuid(vertex.value.jobVertexId) }}
+                </td>
+                <td nz-tooltip [nzTooltipTitle]="vertex.value.jobVertexName">
+                  {{ truncateName(vertex.value.jobVertexName) }}
+                </td>
+                <td>{{ vertex.value.preRescaleParallelism }}</td>
+                <td>{{ vertex.value.postRescaleParallelism || '-' }}</td>
+                <td>{{ vertex.value.desiredParallelism }}</td>
+                <td>{{ vertex.value.sufficientParallelism }}</td>
+                <td nz-tooltip [nzTooltipTitle]="vertex.value.slotSharingGroupId">
+                  {{ truncateUuid(vertex.value.slotSharingGroupId) }}
+                </td>
+              </tr>
+            </tbody>
+          </nz-table>
+
+          <nz-table
+            class="small"
+            [nzData]="detail.slots | keyvalue"
+            [nzSize]="'small'"
+            [nzFrontPagination]="false"
+            [nzShowPagination]="false"
+            [nzTitle]="slotsTitle"
+            [nzBordered]="true"
+          >
+            <thead>
+              <tr>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The ID of the slot sharing group to which the slot belongs consists of 32 hexadecimal characters"
+                >
+                  <strong>Slot Sharing Group ID</strong>
+                </th>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The name of the slot sharing group to which the slot belongs"
+                >
+                  <strong>Slot Sharing Group Name</strong>
+                </th>
+                <th nz-tooltip nzTooltipTitle="The previous number of slots before the rescale">
+                  <strong>Previous Slots</strong>
+                </th>
+                <th nz-tooltip nzTooltipTitle="The acquired number of slots after the rescale">
+                  <strong>Acquired Slots</strong>
+                </th>
+                <th nz-tooltip nzTooltipTitle="The desired number of slots of the rescale">
+                  <strong>Desired Slots</strong>
+                </th>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The minimal number of slots to deploy tasks in the rescale"
+                >
+                  <strong>Sufficient Slots</strong>
+                </th>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The required resource profile of the slot sharing group in the rescale"
+                >
+                  <strong>Required Profile</strong>
+                </th>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The acquired resource profile of the slot sharing group in the rescale"
+                >
+                  <strong>Acquired Profile</strong>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let slot of detail.slots | keyvalue">
+                <td nz-tooltip [nzTooltipTitle]="slot.value.slotSharingGroupId">
+                  {{ truncateUuid(slot.value.slotSharingGroupId) }}
+                </td>
+                <td>{{ slot.value.slotSharingGroupName }}</td>
+                <td>{{ slot.value.preRescaleSlots }}</td>
+                <td>{{ slot.value.postRescaleSlots || '-' }}</td>
+                <td>{{ slot.value.desiredSlots }}</td>
+                <td>{{ slot.value.minimalRequiredSlots }}</td>
+                <td>
+                  <pre style="margin: 0">{{ slot.value.requestResourceProfile | json }}</pre>
+                </td>
+                <td>
+                  <pre style="margin: 0">{{ slot.value.acquiredResourceProfile | json }}</pre>
+                </td>
+              </tr>
+            </tbody>
+          </nz-table>
+
+          <nz-table
+            class="small"
+            [nzData]="detail.schedulerStates"
+            [nzSize]="'small'"
+            [nzFrontPagination]="false"
+            [nzShowPagination]="false"
+            [nzTitle]="schedulerStatesTitle"
+            [nzBordered]="true"
+          >
+            <thead>
+              <tr>
+                <th nz-tooltip nzTooltipTitle="The scheduler state name">
+                  <strong>State</strong>
+                </th>
+                <th nz-tooltip nzTooltipTitle="The time to enter the state">
+                  <strong>Enter Time</strong>
+                </th>
+                <th nz-tooltip nzTooltipTitle="The time to leave the state">
+                  <strong>Leave Time</strong>
+                </th>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The duration time from enter time to leave time of the state"
+                >
+                  <strong>Duration</strong>
+                </th>
+                <th
+                  nz-tooltip
+                  nzTooltipTitle="The exception information about current rescale during the state"
+                >
+                  <strong>Exception</strong>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let state of detail.schedulerStates">
+                <td>{{ state.state }}</td>
+                <td>{{ state.enterTimestampInMillis | date: 'yyyy-MM-dd HH:mm:ss.SSS' }}</td>
+                <td>{{ state.leaveTimestampInMillis | date: 'yyyy-MM-dd HH:mm:ss.SSS' }}</td>
+                <td>{{ state.durationInMillis | humanizeDuration }}</td>
+                <td>{{ state.stringifiedException }}</td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </ng-container>
+
+        <div *ngIf="!getDetail(rescale.rescaleUuid)">Loading...</div>
+      </div>
+    </ng-template>
+
+    <ng-container *ngIf="rescalesOverview">
+      <div class="rescale-header rescale-counts-header">
+        <h3><strong>Rescale Counts</strong></h3>
+        <span class="rescale-time-info">
+          <span>
+            <strong>Total:</strong>
+            {{ getTotalRescaleCount() }}
+          </span>
+          <nz-divider nzType="vertical"></nz-divider>
+          <span>
+            <strong>In Progress:</strong>
+            {{ rescalesOverview.rescalesCounts.inProgress }}
+          </span>
+          <nz-divider nzType="vertical"></nz-divider>
+          <span>
+            <strong>Completed:</strong>
+            {{ rescalesOverview.rescalesCounts.completed }}
+          </span>
+          <nz-divider nzType="vertical"></nz-divider>
+          <span>
+            <strong>Failed:</strong>
+            {{ rescalesOverview.rescalesCounts.failed }}
+          </span>
+          <nz-divider nzType="vertical"></nz-divider>
+          <span>
+            <strong>Ignored:</strong>
+            {{ rescalesOverview.rescalesCounts.ignored }}
+          </span>
+        </span>
+      </div>
+      <nz-divider></nz-divider>
+
+      <ng-container *ngIf="rescalesOverview.latest.completed">
+        <div class="rescale-header">
+          <h3><strong>Latest Completed Rescale</strong></h3>
+          <span class="rescale-time-info">
+            <span>
+              <strong>Start Time:</strong>
+              {{
+                rescalesOverview.latest.completed.startTimestampInMillis
+                  | date: 'yyyy-MM-dd HH:mm:ss.SSS'
+              }}
+            </span>
+            <nz-divider nzType="vertical"></nz-divider>
+            <span>
+              <strong>End Time:</strong>
+              {{
+                rescalesOverview.latest.completed.endTimestampInMillis
+                  ? (rescalesOverview.latest.completed.endTimestampInMillis
+                    | date: 'yyyy-MM-dd HH:mm:ss.SSS')
+                  : '-'
+              }}
+            </span>
+            <nz-divider nzType="vertical"></nz-divider>
+            <span>
+              <strong>Duration:</strong>
+              {{
+                (rescalesOverview.latest.completed.endTimestampInMillis || Date.now()) -
+                  rescalesOverview.latest.completed.startTimestampInMillis | humanizeDuration
+              }}
+            </span>
+          </span>
+        </div>
+        <nz-divider></nz-divider>
+        <ng-container
+          *ngTemplateOutlet="
+            rescaleDetailsTemplate;
+            context: { rescale: rescalesOverview.latest.completed }
+          "
+        ></ng-container>
+      </ng-container>
+      <ng-container *ngIf="!rescalesOverview.latest.completed">
+        <div class="rescale-header">
+          <h3><strong>Latest Completed Rescale</strong></h3>
+          <span class="rescale-time-info">None</span>
+        </div>
+        <nz-divider></nz-divider>
+      </ng-container>
+
+      <ng-container *ngIf="rescalesOverview.latest.ignored">
+        <div class="rescale-header">
+          <h3><strong>Latest Ignored Rescale</strong></h3>
+          <span class="rescale-time-info">
+            <span>
+              <strong>Start Time:</strong>
+              {{
+                rescalesOverview.latest.ignored.startTimestampInMillis
+                  | date: 'yyyy-MM-dd HH:mm:ss.SSS'
+              }}
+            </span>
+            <nz-divider nzType="vertical"></nz-divider>
+            <span>
+              <strong>End Time:</strong>
+              {{
+                rescalesOverview.latest.ignored.endTimestampInMillis
+                  ? (rescalesOverview.latest.ignored.endTimestampInMillis
+                    | date: 'yyyy-MM-dd HH:mm:ss.SSS')
+                  : '-'
+              }}
+            </span>
+            <nz-divider nzType="vertical"></nz-divider>
+            <span>
+              <strong>Duration:</strong>
+              {{
+                (rescalesOverview.latest.ignored.endTimestampInMillis || Date.now()) -
+                  rescalesOverview.latest.ignored.startTimestampInMillis | humanizeDuration
+              }}
+            </span>
+          </span>
+        </div>
+        <nz-divider></nz-divider>
+        <ng-container
+          *ngTemplateOutlet="
+            rescaleDetailsTemplate;
+            context: { rescale: rescalesOverview.latest.ignored }
+          "
+        ></ng-container>
+      </ng-container>
+      <ng-container *ngIf="!rescalesOverview.latest.ignored">
+        <div class="rescale-header">
+          <h3><strong>Latest Ignored Rescale</strong></h3>
+          <span class="rescale-time-info">None</span>
+        </div>
+        <nz-divider></nz-divider>
+      </ng-container>
+
+      <ng-container *ngIf="rescalesOverview.latest.failed">
+        <div class="rescale-header">
+          <h3><strong>Latest Failed Rescale</strong></h3>
+          <span class="rescale-time-info">
+            <span>
+              <strong>Start Time:</strong>
+              {{
+                rescalesOverview.latest.failed.startTimestampInMillis
+                  | date: 'yyyy-MM-dd HH:mm:ss.SSS'
+              }}
+            </span>
+            <nz-divider nzType="vertical"></nz-divider>
+            <span>
+              <strong>End Time:</strong>
+              {{
+                rescalesOverview.latest.failed.endTimestampInMillis
+                  ? (rescalesOverview.latest.failed.endTimestampInMillis
+                    | date: 'yyyy-MM-dd HH:mm:ss.SSS')
+                  : '-'
+              }}
+            </span>
+            <nz-divider nzType="vertical"></nz-divider>
+            <span>
+              <strong>Duration:</strong>
+              {{
+                (rescalesOverview.latest.failed.endTimestampInMillis || Date.now()) -
+                  rescalesOverview.latest.failed.startTimestampInMillis | humanizeDuration
+              }}
+            </span>
+          </span>
+        </div>
+        <nz-divider></nz-divider>
+        <ng-container
+          *ngTemplateOutlet="
+            rescaleDetailsTemplate;
+            context: { rescale: rescalesOverview.latest.failed }
+          "
+        ></ng-container>
+      </ng-container>
+      <ng-container *ngIf="!rescalesOverview.latest.failed">
+        <div class="rescale-header">
+          <h3><strong>Latest Failed Rescale</strong></h3>
+          <span class="rescale-time-info">None</span>
+        </div>
+        <nz-divider></nz-divider>
+      </ng-container>
+    </ng-container>
+  </nz-tab>
   <nz-tab nzTitle="History">
     <nz-table
       class="no-border small"

@@ -22,6 +22,37 @@
       position: relative;
       top: -16px;
       padding: 24px;
+
+      > h3 {
+        margin-top: 8px;
+        margin-bottom: 8px;
+      }
+
+      > nz-divider {
+        margin: 8px 0;
+      }
+
+      .rescale-header {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+        margin-bottom: 8px;
+
+        h3 {
+          flex-shrink: 0;
+          width: 280px;
+          margin: 0;
+        }
+
+        .rescale-time-info {
+          color: rgba(0, 0, 0, 0.85);
+          font-size: 14px;
+        }
+
+        &.rescale-counts-header {
+          margin-top: -2px;
+        }
+      }
     }
 
     .ant-tabs-nav-list {
@@ -35,6 +66,24 @@
         }
       }
     }
+
+    .nz-disable-td {
+      width: 100% !important;
+      padding: 0 !important;
+    }
+
+    .collapse-td {
+      width: 100% !important;
+      padding: 0 !important;
+    }
+
+    tr.ant-table-expanded-row {
+      width: 100%;
+
+      > td {
+        width: 100% !important;
+      }
+    }
   }
 }
 
@@ -46,22 +95,22 @@ nz-empty {
   padding: 24px;
 }
 
-::ng-deep {
-  .nz-disable-td {
-    width: 100% !important;
-    padding: 0 !important;
+.overview-rescale-section {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #f0f0f0;
+  background-color: #fff;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
   }
 
-  .collapse-td {
-    width: 100% !important;
-    padding: 0 !important;
-  }
+  nz-table {
+    margin-bottom: 16px;
 
-  tr.ant-table-expanded-row {
-    width: 100%;
-
-    > td {
-      width: 100% !important;
+    &:last-child {
+      margin-bottom: 0;
     }
   }
 }
@@ -78,6 +127,11 @@ nz-empty {
   padding: 16px;
   border: 1px solid #f0f0f0;
   background-color: #fff;
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
 
   ::ng-deep {
     nz-table.ant-table-wrapper {
