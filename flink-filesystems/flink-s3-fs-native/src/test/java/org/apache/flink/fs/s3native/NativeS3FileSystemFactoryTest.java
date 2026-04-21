@@ -354,6 +354,90 @@ class NativeS3FileSystemFactoryTest {
     }
 
     @Test
+    void testInvalidMaxConnectionsThrowsException() {
+        NativeS3FileSystemFactory factory = new NativeS3FileSystemFactory();
+        Configuration config = new Configuration();
+        config.setString("s3.access-key", "test-access-key");
+        config.setString("s3.secret-key", "test-secret-key");
+        config.setString("s3.region", "us-east-1");
+        config.set(NativeS3FileSystemFactory.MAX_CONNECTIONS, 0);
+        config.setString("io.tmp.dirs", System.getProperty("java.io.tmpdir"));
+
+        factory.configure(config);
+
+        URI fsUri = URI.create("s3://test-bucket/");
+        assertThatThrownBy(() -> factory.create(fsUri))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("s3.connection.max")
+                .hasMessageContaining("must be a positive integer");
+    }
+
+    @Test
+    void testInvalidBulkCopyMaxConcurrentThrowsException() {
+        NativeS3FileSystemFactory factory = new NativeS3FileSystemFactory();
+        Configuration config = new Configuration();
+        config.setString("s3.access-key", "test-access-key");
+        config.setString("s3.secret-key", "test-secret-key");
+        config.setString("s3.region", "us-east-1");
+        config.set(NativeS3FileSystemFactory.BULK_COPY_MAX_CONCURRENT, 0);
+        config.setString("io.tmp.dirs", System.getProperty("java.io.tmpdir"));
+
+        factory.configure(config);
+
+        URI fsUri = URI.create("s3://test-bucket/");
+        assertThatThrownBy(() -> factory.create(fsUri))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("s3.bulk-copy.max-concurrent")
+                .hasMessageContaining("must be a positive integer");
+    }
+
+    @Test
+    void testBulkCopyMaxConcurrentClampedToMaxConnections() throws Exception {
+        NativeS3FileSystemFactory factory = new NativeS3FileSystemFactory();
+        Configuration config = new Configuration();
+        config.setString("s3.access-key", "test-access-key");
+        config.setString("s3.secret-key", "test-secret-key");
+        config.setString("s3.region", "us-east-1");
+        config.set(NativeS3FileSystemFactory.BULK_COPY_ENABLED, true);
+        config.set(NativeS3FileSystemFactory.BULK_COPY_MAX_CONCURRENT, 32);
+        config.set(NativeS3FileSystemFactory.MAX_CONNECTIONS, 10);
+        config.setString("io.tmp.dirs", System.getProperty("java.io.tmpdir"));
+
+        factory.configure(config);
+
+        URI fsUri = URI.create("s3://test-bucket/");
+        FileSystem fs = factory.create(fsUri);
+
+        assertThat(fs).isInstanceOf(NativeS3FileSystem.class);
+        NativeS3FileSystem nativeFs = (NativeS3FileSystem) fs;
+        assertThat(nativeFs.getBulkCopyHelper()).isNotNull();
+        assertThat(nativeFs.getBulkCopyHelper().getMaxConcurrentCopies()).isEqualTo(10);
+    }
+
+    @Test
+    void testBulkCopyMaxConcurrentPreservedWithinMaxConnections() throws Exception {
+        NativeS3FileSystemFactory factory = new NativeS3FileSystemFactory();
+        Configuration config = new Configuration();
+        config.setString("s3.access-key", "test-access-key");
+        config.setString("s3.secret-key", "test-secret-key");
+        config.setString("s3.region", "us-east-1");
+        config.set(NativeS3FileSystemFactory.BULK_COPY_ENABLED, true);
+        config.set(NativeS3FileSystemFactory.BULK_COPY_MAX_CONCURRENT, 10);
+        config.set(NativeS3FileSystemFactory.MAX_CONNECTIONS, 50);
+        config.setString("io.tmp.dirs", System.getProperty("java.io.tmpdir"));
+
+        factory.configure(config);
+
+        URI fsUri = URI.create("s3://test-bucket/");
+        FileSystem fs = factory.create(fsUri);
+
+        assertThat(fs).isInstanceOf(NativeS3FileSystem.class);
+        NativeS3FileSystem nativeFs = (NativeS3FileSystem) fs;
+        assertThat(nativeFs.getBulkCopyHelper()).isNotNull();
+        assertThat(nativeFs.getBulkCopyHelper().getMaxConcurrentCopies()).isEqualTo(10);
+    }
+
+    @Test
     void testS3ASchemeReturnsS3A() {
         NativeS3AFileSystemFactory factory = new NativeS3AFileSystemFactory();
         assertThat(factory.getScheme()).isEqualTo("s3a");

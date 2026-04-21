@@ -170,6 +170,12 @@ class NativeS3FileSystem extends FileSystem
         return clientProvider;
     }
 
+    @VisibleForTesting
+    @Nullable
+    NativeS3BulkCopyHelper getBulkCopyHelper() {
+        return bulkCopyHelper;
+    }
+
     @Override
     public URI getUri() {
         return uri;

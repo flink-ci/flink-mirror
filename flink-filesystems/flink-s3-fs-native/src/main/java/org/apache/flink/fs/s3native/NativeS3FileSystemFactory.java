@@ -122,6 +122,15 @@ public class NativeS3FileSystemFactory implements FileSystemFactory {
                     .defaultValue(true)
                     .withDescription("Enable bulk copy operations using S3TransferManager");
 
+    public static final ConfigOption<Integer> MAX_CONNECTIONS =
+            ConfigOptions.key("s3.connection.max")
+                    .intType()
+                    .defaultValue(50)
+                    .withDescription(
+                            "Maximum number of HTTP connections in the S3 client connection pool. "
+                                    + "Applies to both the sync client (Apache HTTP) and the async client (Netty). "
+                                    + "Must be at least as large as 's3.bulk-copy.max-concurrent'.");
+
     public static final ConfigOption<Integer> BULK_COPY_MAX_CONCURRENT =
             ConfigOptions.key("s3.bulk-copy.max-concurrent")
                     .intType()
@@ -348,6 +357,13 @@ public class NativeS3FileSystemFactory implements FileSystemFactory {
                     readBufferSize);
         }
 
+        final int maxConnections = config.get(MAX_CONNECTIONS);
+        Preconditions.checkArgument(
+                maxConnections > 0,
+                "'%s' must be a positive integer, but was %s",
+                MAX_CONNECTIONS.key(),
+                maxConnections);
+
         S3ClientProvider clientProvider =
                 S3ClientProvider.builder()
                         .accessKey(accessKey)
@@ -355,6 +371,7 @@ public class NativeS3FileSystemFactory implements FileSystemFactory {
                         .region(region)
                         .endpoint(endpoint)
                         .pathStyleAccess(pathStyleAccess)
+                        .maxConnections(maxConnections)
                         .connectionTimeout(config.get(CONNECTION_TIMEOUT))
                         .socketTimeout(config.get(SOCKET_TIMEOUT))
                         .connectionMaxIdleTime(config.get(CONNECTION_MAX_IDLE_TIME))
@@ -371,10 +388,17 @@ public class NativeS3FileSystemFactory implements FileSystemFactory {
 
         NativeS3BulkCopyHelper bulkCopyHelper = null;
         if (config.get(BULK_COPY_ENABLED)) {
+            final int bulkCopyMaxConcurrent = config.get(BULK_COPY_MAX_CONCURRENT);
+            Preconditions.checkArgument(
+                    bulkCopyMaxConcurrent > 0,
+                    "'%s' must be a positive integer, but was %s",
+                    BULK_COPY_MAX_CONCURRENT.key(),
+                    bulkCopyMaxConcurrent);
             bulkCopyHelper =
                     new NativeS3BulkCopyHelper(
                             clientProvider.getTransferManager(),
-                            config.get(BULK_COPY_MAX_CONCURRENT));
+                            bulkCopyMaxConcurrent,
+                            maxConnections);
         }
 
         return new NativeS3FileSystem(
