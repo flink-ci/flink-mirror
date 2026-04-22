@@ -94,9 +94,9 @@ import java.util.stream.Collectors;
  * https://bucket.s3.amazonaws.com/key}) are not currently supported.
  */
 @Internal
-public class NativeS3AccessHelper {
+public class NativeS3ObjectOperations {
 
-    private static final Logger LOG = LoggerFactory.getLogger(NativeS3AccessHelper.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NativeS3ObjectOperations.class);
 
     private final S3Client s3Client;
     private final S3TransferManager transferManager;
@@ -104,11 +104,11 @@ public class NativeS3AccessHelper {
     private final boolean useAsyncOperations;
     private final S3EncryptionConfig encryptionConfig;
 
-    public NativeS3AccessHelper(S3Client s3Client, String bucketName) {
+    public NativeS3ObjectOperations(S3Client s3Client, String bucketName) {
         this(s3Client, null, bucketName, false, null);
     }
 
-    public NativeS3AccessHelper(
+    public NativeS3ObjectOperations(
             S3Client s3Client,
             S3TransferManager transferManager,
             String bucketName,
@@ -116,7 +116,7 @@ public class NativeS3AccessHelper {
         this(s3Client, transferManager, bucketName, useAsyncOperations, null);
     }
 
-    public NativeS3AccessHelper(
+    public NativeS3ObjectOperations(
             S3Client s3Client,
             S3TransferManager transferManager,
             String bucketName,

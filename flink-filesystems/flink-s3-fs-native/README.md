@@ -343,7 +343,7 @@ Key classes:
 - `NativeS3FileSystem` - Main FileSystem implementation
 - `NativeS3RecoverableWriter` - Exactly-once writer using multipart uploads
 - `S3ClientProvider` - Manages S3 client lifecycle
-- `NativeS3AccessHelper` - Low-level S3 operations
+- `NativeS3ObjectOperations` - Low-level S3 operations (multipart upload, put, get, delete)
 
 ## Building
 
