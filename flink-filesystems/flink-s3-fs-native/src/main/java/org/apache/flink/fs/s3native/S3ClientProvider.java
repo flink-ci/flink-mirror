@@ -389,7 +389,9 @@ class S3ClientProvider implements AutoCloseableAsync {
                                                     NettyNioAsyncHttpClient.builder()
                                                             .maxConcurrency(maxConnections)
                                                             .connectionTimeout(connectionTimeout)
-                                                            .readTimeout(socketTimeout))
+                                                            .readTimeout(socketTimeout)
+                                                            .connectionAcquisitionTimeout(
+                                                                    connectionTimeout))
                                             .overrideConfiguration(overrideConfig)
                                             .endpointOverride(endpointUri)
                                             .build())
