@@ -35,7 +35,7 @@
       "priority" : 0
     } ],
     "outputType" : "ROW<`id` INT, `name` VARCHAR(2147483647)>",
-    "description" : "ProcessTableFunction(invocation=[FROM_CHANGELOG(TABLE(#0), DEFAULT(), DEFAULT(), DEFAULT(), DEFAULT())], uid=[null], select=[id,name], rowType=[RecordType(INTEGER id, VARCHAR(2147483647) name)])",
+    "description" : "ProcessTableFunction(invocation=[FROM_CHANGELOG(TABLE(#0), DEFAULT(), DEFAULT(), DEFAULT(), DEFAULT(), DEFAULT())], uid=[null], select=[id,name], rowType=[RecordType(INTEGER id, VARCHAR(2147483647) name)])",
     "uid" : null,
     "functionCall" : {
       "kind" : "CALL",
@@ -57,6 +57,11 @@
         "syntax" : "SPECIAL",
         "internalName" : "$DEFAULT$1",
         "type" : "MAP<VARCHAR(2147483647), VARCHAR(2147483647)>"
+      }, {
+        "kind" : "CALL",
+        "syntax" : "SPECIAL",
+        "internalName" : "$DEFAULT$1",
+        "type" : "VARCHAR(2147483647)"
       }, {
         "kind" : "CALL",
         "syntax" : "SPECIAL",
@@ -99,7 +104,7 @@
       }
     },
     "inputChangelogMode" : [ "INSERT", "UPDATE_BEFORE", "UPDATE_AFTER", "DELETE" ],
-    "upsertMaterializeStrategy" : "ADAPTIVE",
+    "upsertMaterializeStrategy" : "MAP",
     "inputProperties" : [ {
       "requiredDistribution" : {
         "type" : "UNKNOWN"
