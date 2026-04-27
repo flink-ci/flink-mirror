@@ -259,7 +259,7 @@ jobs:
           done
           mkdir -p \
             ${{ env.CONTAINER_LOCAL_WORKING_DIR }} \
-            ${{ env.CONTAINER_LOCAL_WORKING_DIR }} \
+            ${{ env.MAVEN_REPO_FOLDER }} \
             ${{ env.DOCKER_IMAGES_CACHE_FOLDER }}
           chown -R flink:flink ${{ env.CONTAINER_LOCAL_WORKING_DIR }}
           chown -R flink:flink ${{ env.MAVEN_REPO_FOLDER }}
