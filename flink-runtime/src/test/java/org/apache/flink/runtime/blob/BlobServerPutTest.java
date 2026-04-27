@@ -29,7 +29,6 @@ import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.concurrent.FutureUtils;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -403,19 +402,16 @@ class BlobServerPutTest {
 
     // --------------------------------------------------------------------------------------------
 
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     @Test
     void testPutBufferFailsNoJob() throws IOException {
         testPutBufferFails(null, TRANSIENT_BLOB);
     }
 
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     @Test
     void testPutBufferFailsForJob() throws IOException {
         testPutBufferFails(new JobID(), TRANSIENT_BLOB);
     }
 
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     @Test
     void testPutBufferFailsForJobHa() throws IOException {
         testPutBufferFails(new JobID(), PERMANENT_BLOB);
@@ -453,19 +449,16 @@ class BlobServerPutTest {
         }
     }
 
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     @Test
     void testPutBufferFailsIncomingNoJob() throws IOException {
         testPutBufferFailsIncoming(null, TRANSIENT_BLOB);
     }
 
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     @Test
     void testPutBufferFailsIncomingForJob() throws IOException {
         testPutBufferFailsIncoming(new JobID(), TRANSIENT_BLOB);
     }
 
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     @Test
     void testPutBufferFailsIncomingForJobHa() throws IOException {
         testPutBufferFailsIncoming(new JobID(), PERMANENT_BLOB);
@@ -514,19 +507,16 @@ class BlobServerPutTest {
         }
     }
 
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     @Test
     void testPutBufferFailsStoreNoJob() throws IOException {
         testPutBufferFailsStore(null, TRANSIENT_BLOB);
     }
 
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     @Test
     void testPutBufferFailsStoreForJob() throws IOException {
         testPutBufferFailsStore(new JobID(), TRANSIENT_BLOB);
     }
 
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     @Test
     void testPutBufferFailsStoreForJobHa() throws IOException {
         testPutBufferFailsStore(new JobID(), PERMANENT_BLOB);

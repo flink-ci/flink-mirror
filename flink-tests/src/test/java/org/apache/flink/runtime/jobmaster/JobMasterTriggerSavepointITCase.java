@@ -56,7 +56,6 @@ import org.apache.flink.util.MdcUtils;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
@@ -222,7 +221,6 @@ public class JobMasterTriggerSavepointITCase {
     }
 
     @Test
-    @Tag("org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser")
     public void testDoNotCancelJobIfSavepointFails(
             @InjectClusterClient ClusterClient<?> clusterClient) throws Exception {
         setUpWithCheckpointInterval(10L, clusterClient);

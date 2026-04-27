@@ -1031,9 +1031,6 @@ under the License.
 
 		<profile>
 			<id>github-actions</id>
-			<properties>
-				<surefire.excludedGroups.github-actions>org.apache.flink.testutils.junit.FailsInGHAContainerWithRootUser</surefire.excludedGroups.github-actions>
-			</properties>
 			<build>
 				<pluginManagement>
 					<plugins>
