@@ -27,7 +27,10 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
+import javax.annotation.concurrent.GuardedBy;
+
 import java.io.BufferedInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -56,9 +59,16 @@ class NativeS3InputStream extends FSDataInputStream {
     private final long contentLength;
     private final int readBufferSize;
 
+    @GuardedBy("lock")
     private ResponseInputStream<GetObjectResponse> currentStream;
+
+    @GuardedBy("lock")
     private BufferedInputStream bufferedStream;
+
+    @GuardedBy("lock")
     private long position;
+
+    @GuardedBy("lock")
     private volatile boolean closed;
 
     public NativeS3InputStream(
@@ -88,8 +98,24 @@ class NativeS3InputStream extends FSDataInputStream {
                 this.readBufferSize / 1024);
     }
 
+    @GuardedBy("lock")
     private void lazyInitialize() throws IOException {
+        assert lock.isHeldByCurrentThread() : "lazyInitialize() requires lock to be held";
         if (currentStream == null && !closed) {
+            openStreamAtCurrentPosition();
+        }
+    }
+
+    /** At EOF, release instead of reopening: {@code bytes=contentLength-} returns S3 416. */
+    @GuardedBy("lock")
+    private void repositionOpenStream() throws IOException {
+        assert lock.isHeldByCurrentThread() : "repositionOpenStream() requires lock to be held";
+        if (currentStream == null) {
+            return;
+        }
+        if (position >= contentLength) {
+            releaseStreams();
+        } else {
             openStreamAtCurrentPosition();
         }
     }
@@ -108,24 +134,7 @@ class NativeS3InputStream extends FSDataInputStream {
     private void openStreamAtCurrentPosition() throws IOException {
         lock.lock();
         try {
-            if (bufferedStream != null) {
-                try {
-                    bufferedStream.close();
-                } catch (IOException e) {
-                    LOG.warn("Error closing buffered stream for {}/{}", bucketName, key, e);
-                } finally {
-                    bufferedStream = null;
-                }
-            }
-            if (currentStream != null) {
-                try {
-                    currentStream.close();
-                } catch (IOException e) {
-                    LOG.warn("Error closing S3 response stream for {}/{}", bucketName, key, e);
-                } finally {
-                    currentStream = null;
-                }
-            }
+            releaseStreams();
 
             try {
                 GetObjectRequest.Builder requestBuilder =
@@ -143,25 +152,70 @@ class NativeS3InputStream extends FSDataInputStream {
                 currentStream = s3Client.getObject(requestBuilder.build());
                 bufferedStream = new BufferedInputStream(currentStream, readBufferSize);
             } catch (Exception e) {
-                if (bufferedStream != null) {
-                    try {
-                        bufferedStream.close();
-                    } catch (IOException ignored) {
-                    }
-                    bufferedStream = null;
-                }
-                if (currentStream != null) {
-                    try {
-                        currentStream.close();
-                    } catch (IOException ignored) {
-                    }
-                    currentStream = null;
-                }
+                releaseStreams();
                 throw new IOException("Failed to open S3 stream for " + bucketName + "/" + key, e);
             }
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * Aborts the in-flight HTTP connection so that subsequent {@code close()} calls on the stream
+     * do not drain remaining bytes over the network.
+     *
+     * @see ResponseInputStream#abort()
+     */
+    @GuardedBy("lock")
+    private void abortCurrentStream() {
+        assert lock.isHeldByCurrentThread() : "abortCurrentStream() requires lock to be held";
+        if (currentStream != null) {
+            try {
+                currentStream.abort();
+            } catch (RuntimeException e) {
+                LOG.warn("Error aborting S3 response stream for {}/{}", bucketName, key, e);
+            }
+        }
+    }
+
+    /**
+     * Aborts and closes both streams, nulling the references. The abort is called first to prevent
+     * {@link ResponseInputStream#close()} from draining remaining bytes over the network.
+     *
+     * @return the first {@link IOException} encountered (with subsequent ones added as suppressed),
+     *     or {@code null} if cleanup succeeded without errors
+     */
+    @GuardedBy("lock")
+    private IOException releaseStreams() {
+        assert lock.isHeldByCurrentThread() : "releaseStreams() requires lock to be held";
+        abortCurrentStream();
+        IOException exception = null;
+
+        if (bufferedStream != null) {
+            try {
+                bufferedStream.close();
+            } catch (IOException e) {
+                exception = e;
+                LOG.warn("Error closing buffered stream for {}/{}", bucketName, key, e);
+            } finally {
+                bufferedStream = null;
+            }
+        }
+        if (currentStream != null) {
+            try {
+                currentStream.close();
+            } catch (IOException e) {
+                if (exception == null) {
+                    exception = e;
+                } else {
+                    exception.addSuppressed(e);
+                }
+                LOG.warn("Error closing S3 response stream for {}/{}", bucketName, key, e);
+            } finally {
+                currentStream = null;
+            }
+        }
+        return exception;
     }
 
     @Override
@@ -172,14 +226,19 @@ class NativeS3InputStream extends FSDataInputStream {
                 throw new IOException("Stream is closed");
             }
             if (desired < 0) {
-                throw new IOException("Cannot seek to negative position: " + desired);
+                throw new EOFException("Cannot seek to negative position: " + desired);
+            }
+            if (desired > contentLength) {
+                throw new EOFException(
+                        "Cannot seek past end of stream: position="
+                                + desired
+                                + ", length="
+                                + contentLength);
             }
 
             if (desired != position) {
                 position = desired;
-                if (currentStream != null) {
-                    openStreamAtCurrentPosition();
-                }
+                repositionOpenStream();
             }
         } finally {
             lock.unlock();
@@ -203,10 +262,10 @@ class NativeS3InputStream extends FSDataInputStream {
             if (closed) {
                 throw new IOException("Stream is closed");
             }
-            lazyInitialize();
             if (position >= contentLength) {
                 return -1;
             }
+            lazyInitialize();
             int data = bufferedStream.read();
             if (data != -1) {
                 position++;
@@ -236,10 +295,10 @@ class NativeS3InputStream extends FSDataInputStream {
             if (closed) {
                 throw new IOException("Stream is closed");
             }
-            lazyInitialize();
             if (position >= contentLength) {
                 return -1;
             }
+            lazyInitialize();
             long remaining = contentLength - position;
             int toRead = (int) Math.min(len, remaining);
             int bytesRead = bufferedStream.read(b, off, toRead);
@@ -270,33 +329,8 @@ class NativeS3InputStream extends FSDataInputStream {
             }
 
             closed = true;
-            IOException exception = null;
 
-            if (bufferedStream != null) {
-                try {
-                    bufferedStream.close();
-                } catch (IOException e) {
-                    exception = e;
-                    LOG.warn("Error closing buffered stream for {}/{}", bucketName, key, e);
-                } finally {
-                    bufferedStream = null;
-                }
-            }
-
-            if (currentStream != null) {
-                try {
-                    currentStream.close();
-                } catch (IOException e) {
-                    if (exception == null) {
-                        exception = e;
-                    } else {
-                        exception.addSuppressed(e);
-                    }
-                    LOG.warn("Error closing S3 response stream for {}/{}", bucketName, key, e);
-                } finally {
-                    currentStream = null;
-                }
-            }
+            IOException exception = releaseStreams();
 
             LOG.debug(
                     "Closed S3 input stream - bucket: {}, key: {}, final position: {}/{}",
@@ -350,9 +384,7 @@ class NativeS3InputStream extends FSDataInputStream {
             long skipped = newPos - position;
             if (newPos != position) {
                 position = newPos;
-                if (currentStream != null) {
-                    openStreamAtCurrentPosition();
-                }
+                repositionOpenStream();
             }
             return skipped;
         } finally {
