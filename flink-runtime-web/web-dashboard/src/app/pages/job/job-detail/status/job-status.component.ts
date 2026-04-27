@@ -79,7 +79,8 @@ export class JobStatusComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     @Inject(JOB_MODULE_CONFIG) readonly moduleConfig: JobModuleConfig
   ) {
-    this.listOfNavigation = moduleConfig.routerTabs || JOB_MODULE_DEFAULT_CONFIG.routerTabs;
+    // Create a copy to avoid mutating the shared config
+    this.listOfNavigation = [...(moduleConfig.routerTabs || JOB_MODULE_DEFAULT_CONFIG.routerTabs)];
     this.checkpointIndexOfNavigation = this.checkpointIndexOfNav();
     this.rescalesIndexOfNavigation = this.rescalesIndexOfNav();
   }
