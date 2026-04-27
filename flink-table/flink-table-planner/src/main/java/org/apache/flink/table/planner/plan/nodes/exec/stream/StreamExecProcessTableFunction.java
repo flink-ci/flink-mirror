@@ -38,6 +38,7 @@ import org.apache.flink.table.planner.codegen.HashCodeGenerator;
 import org.apache.flink.table.planner.codegen.ProcessTableRunnerGenerator;
 import org.apache.flink.table.planner.codegen.sort.SortCodeGenerator;
 import org.apache.flink.table.planner.delegation.PlannerBase;
+import org.apache.flink.table.planner.functions.bridging.BridgingSqlFunction;
 import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeBase;
 import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeConfig;
 import org.apache.flink.table.planner.plan.nodes.exec.ExecNodeContext;
@@ -157,7 +158,10 @@ public class StreamExecProcessTableFunction extends ExecNodeBase<RowData>
             @JsonProperty(FIELD_NAME_OUTPUT_CHANGELOG_MODE) ChangelogMode outputChangelogMode) {
         super(id, context, persistedConfig, inputProperties, outputType, description);
         this.uid = uid;
-        this.invocation = (RexCall) invocation;
+        // Mirror the FlinkLogicalTableFunctionScan converter for the compiled-plan restore path:
+        // bake StaticArgument#withConditionalTrait rules into the operator's static args so
+        // downstream code can use plain arg.is(SET_SEMANTIC_TABLE) checks.
+        this.invocation = BridgingSqlFunction.resolveCallTraits((RexCall) invocation);
         this.inputChangelogModes = inputChangelogModes;
         this.outputChangelogMode = outputChangelogMode;
     }
